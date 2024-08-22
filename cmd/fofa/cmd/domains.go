@@ -28,7 +28,7 @@ var domainsCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:        "outFile",
 			Aliases:     []string{"o"},
-			Usage:       "if not set, wirte to stdout",
+			Usage:       "if not set, write to stdout",
 			Destination: &outFile,
 		},
 		&cli.IntFlag{
