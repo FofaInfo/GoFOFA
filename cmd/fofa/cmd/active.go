@@ -28,12 +28,6 @@ var activeCmd = &cli.Command{
 			Destination: &activeTarget,
 		},
 		&cli.StringFlag{
-			Name:        "format",
-			Value:       "csv",
-			Usage:       "can be csv/json/xml",
-			Destination: &format,
-		},
-		&cli.StringFlag{
 			Name:        "outFile",
 			Aliases:     []string{"o"},
 			Usage:       "if not set, write to stdout",
@@ -113,9 +107,8 @@ func ActiveAction(ctx *cli.Context) error {
 	// gen output
 	var outTo io.Writer
 	if len(outFile) > 0 {
-		var f *os.File
-		var err error
-		if f, err = os.Create(outFile); err != nil {
+		f, err := os.Create(outFile)
+		if err != nil {
 			return fmt.Errorf("create outFile %s failed: %w", outFile, err)
 		}
 		outTo = f
@@ -126,12 +119,7 @@ func ActiveAction(ctx *cli.Context) error {
 
 	// gen writer
 	var writer outformats.OutWriter
-	switch format {
-	case "csv":
-		writer = outformats.NewCSVWriter(outTo)
-	default:
-		return fmt.Errorf("unknown format: %s", format)
-	}
+	writer = outformats.NewCSVWriter(outTo)
 
 	var locker sync.Mutex
 

@@ -1,4 +1,4 @@
-# gofofa
+# gofofa用户指南
 
 fofa client in Go
 
@@ -18,145 +18,326 @@ The official library doesn't has unittests,  之前官方的库功能不全，�
 
 ### Build and run
 
+> 安装配置
+
+- 下载gofofa:
+
 ```
-~ go install github.com/LubyRuffy/gofofa/cmd/fofa@latest
-~ fofa
-~ FOFA_CLIENT_URL='https://fofa.info/?email=xxx@gmail.com&key=xxx' fofa search port=80
+$ go install github.com/LubyRuffy/gofofa/cmd/fofa@latest
+```
+
+- 显示如下表示安装成功:
+
+```
+$ fofa
+NAME:
+   fofa - fofa client on Go v0.2.17, commit none, built at unknown
+
+USAGE:
+   fofa [global options] command [command options] [arguments...]
+
+VERSION:
+   v0.2.17
+
+AUTHOR:
+   LubyRuffy <lubyruffy@gmail.com>
+
+COMMANDS:
+   search   fofa host search
+   account  fofa account information
+   count    fofa query results count
+   stats    fofa stats
+   icon     fofa icon search
+   random   fofa random data generator
+   host     fofa host
+   dump     fofa dump data
+   domains  extend domains from a domain
+   help, h  Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --fofaURL value, -u value  format: <url>/?email=<email>&key=<key>&version=<v2> (default: "https://fofa.info/?email=mayuze@baimaohui.net&key=bf68530e5d5352ddb5f048de4d92e58b&version=v1")
+   --verbose                  print more information (default: false)
+   --accountDebug             print account in error log (default: false)
+   --help, -h                 show help (default: false)
+   --version, -v              print the version (default: false)
+```
+
+- 配置环境变量:
+
+```
+$ FOFA_CLIENT_URL='https://fofa.info/?email=xxx@gmail.com&key=xxx'
 ```
 
 ### Search
 
--   search query, only query needed:
+> 搜索
+
+-   fofa语法查询，可以输入单个查询语句，默认会输出ip,端口:
 
 ```shell
-./fofa search port=80
-./fofa search 'port=80 && protocol=ftp'
+$ fofa search port=80
+2024/08/23 11:51:19 query fofa of: port=80
+69.10.146.92,80
+20.193.138.22,80
+194.182.72.64,80
+......
+......
 ```
 
--   search short, default subcommand is search:
+或输入多个查询语句:
 
 ```shell
-./fofa domain=qq.com
+$ fofa search 'port=80 && protocol=ftp'
+2024/08/23 11:52:00 query fofa of: port=80 && protocol=ftp
+139.196.102.155,80
+59.82.133.71,80
+69.80.101.32,80
+69.80.101.68,80
+......
+......
 ```
 
--   custom fields, default 'ip,port':
+-   不选择子模块查询的话，会默认使用search模块进行查询:
 
 ```shell
-./fofa search --fields host,ip,port,protocol,lastupdatetime 'port=6379'
-./fofa search -f host,ip,port,protocol,lastupdatetime 'port=6379'
+$ fofa domain=qq.com
+2024/08/23 11:53:00 query fofa of: domain=qq.com
+14.22.33.13,443
+183.47.126.116,443
+14.22.33.13,443
+14.22.33.13,443
+......
+......
 ```
 
--   custom size, default 100:
+-   使用fields来选择输出的字段，默认会输出ip，端口:
 
 ```shell
-./fofa search --size 10 'port=6379'
-./fofa search -s 10 'port=6379'
+$ fofa search --fields host,ip,port,protocol,lastupdatetime 'port=6379'
+2024/08/23 12:09:08 query fofa of: port=6379
+168.119.197.62:6379,168.119.197.62,6379,redis,2024-08-23 12:00:00
+119.45.170.222:6379,119.45.170.222,6379,redis,2024-08-23 12:00:00
+112.126.87.29:6379,112.126.87.29,6379,unknown,2024-08-23 12:00:00
+121.43.116.245:6379,121.43.116.245,6379,unknown,2024-08-23 12:00:00
+......
+......
 ```
 
-if size is larger than your account free limit, you can set `-deductMode` to decide whether deduct fcoin automatically or not
-
--   custom out format, default csv:
-    can be csv/json/xml, line by line
+或者更简洁一些:
 
 ```shell
-./fofa search --format=json 'port=6379'
-./fofa search --format json 'port=6379'
+$ fofa search -f host,ip,port,protocol,lastupdatetime 'port=6379'
+2024/08/23 12:09:08 query fofa of: port=6379
+168.119.197.62:6379,168.119.197.62,6379,redis,2024-08-23 12:00:00
+119.45.170.222:6379,119.45.170.222,6379,redis,2024-08-23 12:00:00
+112.126.87.29:6379,112.126.87.29,6379,unknown,2024-08-23 12:00:00
+121.43.116.245:6379,121.43.116.245,6379,unknown,2024-08-23 12:00:00
+......
+......
 ```
 
--   write to file, default stdout:
+
+
+-   使用size来选择输出数量， 默认大小100:
 
 ```shell
-./fofa search --outFile a.txt 'port=6379'
-./fofa search -o a.txt 'port=6379'
+$ fofa search --size 5 'port=6379'
+2024/08/23 14:07:18 query fofa of: port=6379
+47.99.89.216,6379
+112.124.14.11,6379
+107.154.224.11,6379
+39.101.36.243,6379
+139.196.136.107,6379
 ```
 
--   fix host to url:
+或者更简洁一些:
 
 ```shell
-./fofa --size 2 --fields "host" title=Gitblit
-47.92.145.232:8998
-https://114.55.35.145:8443
-./fofa --size 2 --fields "host" --fixUrl title=Gitblit
-http://47.92.145.232:8998
-https://114.55.35.145:8443
-./fofa --size 2 --fields "host" --fixUrl title=Gitblit
-```
-use another url prefix:
-```shell
-./fofa --size 1 --fields "host" --fixUrl --urlPrefix "redis://" protocol=redis
-redis://152.136.145.87:6379
+$ fofa search -s 5 'port=6379'
+2024/08/23 14:07:18 query fofa of: port=6379
+47.99.89.216,6379
+112.124.14.11,6379
+107.154.224.11,6379
+39.101.36.243,6379
+139.196.136.107,6379
 ```
 
--   verbose mode
+如果size大于您的帐户免费限制，您可以设置 `-deductMode` 来决定是否自动扣除f点
+
+-   如果需要输出不同的数据格式，可以通过format来设置，默认是csv格式，还支持json和xml格式:
 
 ```shell
-./fofa --verbose search port=80
+$ fofa search --format=json 'port=6379'
+2024/08/23 14:05:49 query fofa of: port=6379
+{"ip":"39.101.36.243","port":"6379"}
+{"ip":"139.196.136.107","port":"6379"}
+{"ip":"47.97.53.84","port":"6379"}
+{"ip":"39.104.71.245","port":"6379"}
+......
+......
+$ fofa search --format=xml 'port=6379'
+2024/08/23 14:08:19 query fofa of: port=6379
+<result><port>6379</port><ip>39.101.36.96</ip></result>
+<result><ip>47.99.89.216</ip><port>6379</port></result>
+<result><ip>112.124.14.11</ip><port>6379</port></result>
+<result><ip>23.224.60.162</ip><port>6379</port></result>
+......
+......
 ```
 
--   pipeline to nuclei
+或者:
 
 ```shell
-./fofa -fields "host" -fixUrl 'app="Aspera-Faspex"' | nuclei -t http/cves/2022/CVE-2022-47986.yaml
+$ fofa search --format json 'port=6379'
+2024/08/23 14:05:49 query fofa of: port=6379
+{"ip":"39.101.36.243","port":"6379"}
+{"ip":"139.196.136.107","port":"6379"}
+{"ip":"47.97.53.84","port":"6379"}
+{"ip":"39.104.71.245","port":"6379"}
+......
+......
+$ fofa search --format xml 'port=6379'
+2024/08/23 14:08:19 query fofa of: port=6379
+<result><port>6379</port><ip>39.101.36.96</ip></result>
+<result><ip>47.99.89.216</ip><port>6379</port></result>
+<result><ip>112.124.14.11</ip><port>6379</port></result>
+<result><ip>23.224.60.162</ip><port>6379</port></result>
+......
+......
 ```
 
--   uniq by ip
+-   使用outFile可以将结果输出到指定文件中，若不设置次参数则默认输出在命令行中:
 
 ```shell
-./fofa --fixUrl --size 1000 --fields host --uniqByIP 'host="edu.cn"'
+$ fofa search --outFile a.txt 'port=6379'
 ```
 
--   pipeline with parallel mode
+或者更简洁一些:
 
 ```shell
-fofa -f ip "is_ipv6=false && port=22" | fofa -f ip -uniqByIP -template "port=8443 && ip={}" 
+$ fofa search -o a.txt 'port=6379'
 ```
-can use `-rate 3` to increase rate limit, default is 2
+
+-   如果你想获取完整的url，可以使用fixUrl参数:
+
+```shell
+$ fofa --size 2 --fields "host" title=Gitblit
+2024/08/23 14:23:02 query fofa of: title=Gitblit
+pmsningbo.veritrans.cn:20202
+platform.starpost.cn:8080
+$ fofa --size 2 --fields "host" --fixUrl title=Gitblit
+2024/08/23 14:23:34 query fofa of: title=Gitblit
+http://pmsningbo.veritrans.cn:20202
+http://platform.starpost.cn:8080
+```
+- 如果你想要使用其他的前缀，可以使用urlPrefix:
+
+```shell
+$ fofa --size 1 --fields "host" --fixUrl --urlPrefix "redis://" protocol=redis
+2024/08/23 14:29:26 query fofa of: protocol=redis
+redis://139.9.222.14:7000
+```
+
+-   如果你想查看更多的debug信息，可以使用全局参数verbose:
+
+```shell
+$ fofa --verbose search port=80
+```
+
+-   支持管道:
+
+```shell
+$ fofa -fields "host" -fixUrl 'app="Aspera-Faspex"' | nuclei -t http/cves/2022/CVE-2022-47986.yaml
+```
+
+-   如果你想要根据ip进行去重，可以使用uniqByIP:
+
+```shell
+$ fofa --fixUrl --size 5 --fields host "app=WebLogic-Server && port=8999"
+2024/08/23 14:52:09 query fofa of: app=WebLogic-Server && port=8999
+http://54.227.180.211:8999
+http://54.227.180.211:8999
+http://43.203.169.117:8999
+http://43.203.169.117:8999
+http://47.129.63.4:8999
+$ fofa --fixUrl --size 5 --fields host --uniqByIP "app=WebLogic-Server && port=8999"
+2024/08/23 14:52:21 query fofa of: app=WebLogic-Server && port=8999
+http://54.227.180.211:8999
+http://43.203.169.117:8999
+http://47.129.63.4:8999
+http://15.152.32.159:8999
+http://54.168.66.49:8999
+```
+
+-   如果你想要更高级的使用方法，可以使用`{}`做为占位符来达到批量获取数据的效果:
+
+```shell
+$ fofa -f ip "is_ipv6=false && port=22" | fofa -f ip -uniqByIP -template "port=8443 && ip={}" 
+```
+你也可以通过 `-rate 3` 来设置速率, 默认是 2
 
 ### Stats
 
--   stats subcommand
+> 数据统计
+
+-   stats模块可以做数据统计等操作
 
 ```shell
-./fofa stats --fields title,country title="hacked by"
+$ fofa stats --fields title,country title="hacked by"
 ```
 ![fofa stats](./data/fofa_stats.png)
 
 ### Icon
 
--   icon subcommand
+>Icon查询（商业版及以上）
 
-search icon at fofa:
+- 你可以通过读取本地的ico文件来查询数据，open参数会自动帮你跳转到fofa:
 
 ```shell
-./fofa icon --open ./data/favicon.ico
-./fofa icon --open https://fofa.info/favicon.ico
-./fofa icon --open http://www.baidu.com
+$ fofa icon --open ./data/favicon.ico
 ```
 
-calc local file icon hash:
+也可以通过网页的ico文件来查询:
 
 ```shell
-./fofa icon ./data/favicon.ico
+$ fofa icon --open https://fofa.info/favicon.ico
 ```
 
-calc remote icon hash:
+还可以直接通过url来查询:
 
 ```shell
-./fofa icon https://fofa.info/favicon.ico
+$ fofa icon --open http://www.baidu.com
 ```
 
-calc remote homepage icon hash:
+- 获取本地ico文件的hash值:
 
 ```shell
-./fofa icon http://www.baidu.com
+$ fofa icon ./data/favicon.ico
+-247388890
+```
+
+也可以获取网页ico文件的hash值:
+
+```shell
+$ fofa icon https://fofa.info/favicon.ico
+-247388890
+```
+
+还可以直接获取url的ico_hash值:
+
+```shell
+$ fofa icon http://www.baidu.com
+-1588080585
 ```
 
 ### Host
 
--   host subcommand
+> 获取Host信息
+
+-   Host模块，输入域名即可获取host信息:
 
 ```shell
-./fofa host demo.cpanel.net
+$ fofa host demo.cpanel.net
 Host:            demo.cpanel.net
 IP:              208.74.120.133
 ASN:             33522
@@ -172,25 +353,26 @@ UpdateTime:      2022-05-30 17:00:00
 
 ### Dump
 
--   dump large-scale data
+> 数据存储
+
+-   存储超大数据，使用`-batchSize`设置数量:
 
 ```shell
-./fofa dump --format json -fixUrl -outFile a.json -batchSize 10000 'title=phpinfo'
+$ fofa dump --format json -fixUrl -outFile a.json -batchSize 10000 'title=phpinfo'
 ```
 
--   dump large-scale data by queries file (line by line)
+-   通过fofa语句文件，来存储超大数据（一行一行的存储）:
 
 ```shell
-
 cat queries.txt
 port=13344
 port=23455
 
 # csv
-./fofa dump -outFile out.csv -inFile queries.txt
+$ fofa dump -outFile out.csv -inFile queries.txt
 
 # json
-./fofa dump -inFile queries.txt -outFile out.json -j
+$ fofa dump -inFile queries.txt -outFile out.json -j
 2023/08/09 10:05:33 dump data of query: port=13344
 2023/08/09 10:05:35 size: 11/11, 100.00%
 2023/08/09 10:05:35 dump data of query: port=23455
@@ -199,11 +381,12 @@ port=23455
 
 ### Domains
 
--   domain subcommand 主要用于最简单的拓线
+> 简单域名拓线
 
-add domains mode to extend domains from domain, through certs
+-   domains子模块主要用于最简单的拓线，通过证书进行拓线，可以使用withCount来统计数量:
+
 ```shell
-fofa domains -s 1000 -withCount baidu.com
+$ fofa domains -s 1000 -withCount baidu.com
 baidu.com       660
 dwz.cn  620
 dlnel.com       614
@@ -213,47 +396,118 @@ bdstatic.com    614
 ......
 ```
 
-withCount mean with domain count value, you can also use `-uniqByIP` to uniq by ip:
+你还可以使用 `-uniqByIP` 来去除相同的ip:
 ```shell
-fofa domains -s 1000 -withCount -uniqByIP baidu.com 
+$ fofa domains -s 1000 -withCount -uniqByIP baidu.com 
 baidu.com       448
 dwz.cn  410
 aipage.cn       406
 
 ```
 
+### Active
+
+> 存活探测
+
+- active模块用来对url进行web存活探测，可以使用target来获取存活信息，true为存活，false为不存活:
+
+
+```shell
+$ fofa active -target baidu.com,fofa.info,asdsadsasdas.com
+baidu.com,true
+fofa.info,true
+asdsadsasdas.com,false
+```
+
+或者可以更简洁一些:
+
+```shell
+$ fofa active -t baidu.com,fofa.info,asdsadsasdas.com
+baidu.com,true
+fofa.info,true
+asdsadsasdas.com,false
+```
+
+- 还可以通过对一个每行为一个url的文件进行探测:
+
+
+```shell
+$ cat target.txt
+baidu.com
+fofa.info
+asdsadsasdas.com
+$ fofa active -i target.txt  
+baidu.com,true
+fofa.info,true
+asdsadsasdas.com,false
+```
+
+- 还支持对管道中的url进行探测:
+
+
+```shell
+$ fofa search -f link -s 3 port=80 | fofa active
+2024/08/23 15:50:11 query fofa of: port=80
+http://og823.hb-yj.com,true
+http://rw823.tcxzgh.org,true
+http://sb823.tcxzgh.org,true
+```
+
+### Duplicate
+
+> 去重
+
+- duplicate支持对一个csv文件中的某一个字段进行去重，通过input参数上传文件，通过duplicate参数选择单个去重字段，通过output设置输出文件名（默认duplicate.csv）:
+
+```shell
+$ fofa duplicate -output data.csv -duplicate ip -output duplicate.csv
+```
+或者可以更简洁一些:
+
+```shell
+$ fofa duplicate -o data.csv -d ip -o duplicate.csv
+```
+
 ### Utils
 
--   random subcommand
+> 其他
 
-random generate date from fofa, line by line
+-   random 模块
+
+随机从fofa生成数据:
 ```shell
-./fofa random
-./fofa random -f host,ip,port,lastupdatetime,title,header,body --format json
+$ fofa random -f host,ip,port,lastupdatetime,title,header,body --format json
+{"body":"","header":"HTTP/1.1 401 Unauthorized\r\nWww-Authenticate: Digest realm=\"IgdAuthentication\", domain=\"/\", nonce=\"ZjVhNGY2YzI6MTUyNDM2N2Y6MzRiMGZjZjQ=\", qop=\"auth\", algorithm=MD5\r\nContent-Length: 0\r\n","host":"95.22.200.127:7547","ip":"95.22.200.127","lastupdatetime":"2024-08-14 13:00:00","port":"7547","title":""}
 ```
 
-every 500ms generate one line, never stop
+可以通过sleep参数设置时间500ms，按照时间每500ms生成一次数据:
 
 ```shell
-./fofa random -s -1 -sleep 500
+$ fofa random -s -1 -sleep 500
 ```
 
--   count subcommand
+-   count 模块
+
+可以通过count模块统计数据数量:
 
 ```shell
-./fofa count port=80
+$ fofa count port=80
 ```
 
--   account subcommand
+-   account 模块
+
+可以获取账户信息:
 
 ```shell
-./fofa account
+$ fofa account
 ```
 
 -   version
 
+获取gofofa版本号
+
 ```shell
-./fofa --version
+$ fofa --version
 ```
 
 ## Features
