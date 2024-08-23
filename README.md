@@ -55,7 +55,7 @@ COMMANDS:
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --fofaURL value, -u value  format: <url>/?email=<email>&key=<key>&version=<v2> (default: "https://fofa.info/?email=mayuze@baimaohui.net&key=bf68530e5d5352ddb5f048de4d92e58b&version=v1")
+   --fofaURL value, -u value  format: <url>/?email=<email>&key=<key>&version=<v2> (default: "https://fofa.info/?email=youremail&key=yourkey&version=v1")
    --verbose                  print more information (default: false)
    --accountDebug             print account in error log (default: false)
    --help, -h                 show help (default: false)
@@ -549,6 +549,8 @@ $ fofa --version
         -   ☐ web
         -   ☑ dump https://en.fofa.info/api/batches_pages large-scale data retrieval
         -   ☑ domains
+        -   ☑ active
+        -   ☑ duplicate
     -   ☑ Terminal color 
     -   ☑ Global Config
         -   ☑ fofaURL

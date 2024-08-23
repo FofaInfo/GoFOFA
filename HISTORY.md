@@ -1,3 +1,9 @@
+## v0.2.20 add active and duplicate mode
+
+-   duplicate use as: ```fofa duplicate -o data.csv -d ip -o duplicate.csv```
+-   active of target use as: ```fofa active -target baidu.com,fofa.info``` 
+-   active of file use as: ```fofa active -i target.txt``` 
+-   active of pipline use as: ```fofa search -f link -s 3 port=80 | fofa active``` 
 ## v0.2.19 add inFile in search command
 
 -   use as: ```fofa -f host -uniqByIP -outFile b.cvs -rate 5 -inFile a.cvs```
@@ -63,13 +69,13 @@
 -   add web subcommand
 -   support workflow viz
 -   web support run workflow
-  
+
 ## v0.0.5 data pipeline
 
 -   add pipeline subcommand: ```./fofa pipeline 'fofa("body=icon && body=link", "body,host,ip,port") | grep_add("body", "(?is)<link[^>]*?rel[^>]*?icon[^>]*?>", "icon_tag") | drop("body")'```
 -   support gzip compress
 -   terminal color on debug output (```--verbose```)
-  
+
 ## v0.0.4 icon
 
 -   add icon subcommand: `./fofa icon --open http://www.baidu.com`
@@ -80,7 +86,7 @@
 -   add count subcommand: `./fofa count port=80`
 -   add stats subcommand: `./fofa stats port=80`
 -   add terminal color support
-  
+
 ## v0.0.2 code quality
 
 -   support default command to search: `./fofa port=80`
