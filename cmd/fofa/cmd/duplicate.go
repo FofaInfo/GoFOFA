@@ -21,7 +21,7 @@ var duplicateCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:        "duplicate",
 			Aliases:     []string{"d"},
-			Usage:       "remove duplicate according to the field",
+			Usage:       "remove duplicate according to the fields",
 			Destination: &duplicateString,
 		},
 		&cli.StringFlag{
@@ -108,6 +108,19 @@ func deduplicate(records [][]string, fieldName string) ([][]string, error) {
 	return uniqueRecords, nil
 }
 
+func deduplicates(records [][]string, fields []string) ([][]string, error) {
+	var uniqueRecords [][]string
+	for _, field := range fields {
+		uniq, err := deduplicate(records, field)
+		if err != nil {
+			return nil, errors.New("deduplicate failed: " + err.Error())
+		}
+		uniqueRecords = append(uniqueRecords, uniq...)
+	}
+
+	return uniqueRecords, nil
+}
+
 func duplicateAction(ctx *cli.Context) error {
 	// valid same config
 	if len(ctx.Args().Slice()) > 0 {
@@ -119,10 +132,6 @@ func duplicateAction(ctx *cli.Context) error {
 		return errors.New("flag needs arguments: -d field -i target.csv")
 	}
 
-	if len(duplicate) > 1 {
-		return errors.New("invalid -d, please input a field")
-	}
-
 	if !isCSV(inFile) {
 		return errors.New("invalid file type, please input a csv file type")
 	}
@@ -132,9 +141,9 @@ func duplicateAction(ctx *cli.Context) error {
 		return errors.New("read csv file failed: " + err.Error())
 	}
 
-	uniqueRecords, err := deduplicate(records, duplicateString)
+	uniqueRecords, err := deduplicates(records, duplicate)
 	if err != nil {
-		return errors.New("deduplicate failed: " + err.Error())
+		return errors.New("deduplicates failed: " + err.Error())
 	}
 
 	err = writeCSV(outFile, uniqueRecords)

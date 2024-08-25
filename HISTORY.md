@@ -1,6 +1,6 @@
 ## v0.2.20 add active and duplicate mode
 
--   duplicate use as: ```fofa duplicate -o data.csv -d ip -o duplicate.csv```
+-   duplicate use as: ```fofa duplicate -o data.csv -d ip,host,domain -o duplicate.csv```
 -   active of target use as: ```fofa active -target baidu.com,fofa.info``` 
 -   active of file use as: ```fofa active -i target.txt``` 
 -   active of pipline use as: ```fofa search -f link -s 3 port=80 | fofa active``` 

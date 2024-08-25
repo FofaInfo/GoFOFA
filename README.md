@@ -253,20 +253,16 @@ $ fofa -fields "host" -fixUrl 'app="Aspera-Faspex"' | nuclei -t http/cves/2022/C
 -   如果你想要根据ip进行去重，可以使用uniqByIP:
 
 ```shell
-$ fofa --fixUrl --size 5 --fields host "app=WebLogic-Server && port=8999"
-2024/08/23 14:52:09 query fofa of: app=WebLogic-Server && port=8999
-http://54.227.180.211:8999
-http://54.227.180.211:8999
-http://43.203.169.117:8999
-http://43.203.169.117:8999
-http://47.129.63.4:8999
-$ fofa --fixUrl --size 5 --fields host --uniqByIP "app=WebLogic-Server && port=8999"
-2024/08/23 14:52:21 query fofa of: app=WebLogic-Server && port=8999
-http://54.227.180.211:8999
-http://43.203.169.117:8999
-http://47.129.63.4:8999
-http://15.152.32.159:8999
-http://54.168.66.49:8999
+$ fofa --fixUrl --size 5 --fields host ip=123.58.224.8
+2024/08/23 17:58:24 query fofa of: ip=123.58.224.8
+http://123.58.224.8:8008
+http://123.58.224.8
+https://123.58.224.8:63739
+http://123.58.224.8:22937
+https://123.58.224.8:14272
+$ fofa --fixUrl --size 5 --fields host --uniqByIP ip=123.58.224.8
+2024/08/23 17:58:49 query fofa of: ip=123.58.224.8
+http://123.58.224.8:8008
 ```
 
 -   如果你想要更高级的使用方法，可以使用`{}`做为占位符来达到批量获取数据的效果:
@@ -361,7 +357,7 @@ UpdateTime:      2022-05-30 17:00:00
 $ fofa dump --format json -fixUrl -outFile a.json -batchSize 10000 'title=phpinfo'
 ```
 
--   通过fofa语句文件，来存储超大数据（一行一行的存储）:
+-   通过fofa语句文件，来存储超大数据（每条数据一行）:
 
 ```shell
 cat queries.txt
@@ -442,7 +438,7 @@ fofa.info,true
 asdsadsasdas.com,false
 ```
 
-- 还支持对管道中的url进行探测:
+- 还支持对管道中的url进行探测（管道中的数据需为每行一条url）:
 
 
 ```shell
@@ -457,15 +453,17 @@ http://sb823.tcxzgh.org,true
 
 > 去重
 
-- duplicate支持对一个csv文件中的某一个字段进行去重，通过input参数上传文件，通过duplicate参数选择单个去重字段，通过output设置输出文件名（默认duplicate.csv）:
+- duplicate支持对一个csv文件中的某一个字段进行去重，通过input参数上传文件，通过duplicate参数选择去重字段（会根据字段顺序进行去重），通过output设置输出文件名（默认duplicate.csv）:
 
 ```shell
 $ fofa duplicate -output data.csv -duplicate ip -output duplicate.csv
+$ fofa duplicate -output data.csv -duplicate ip,host,domain -output duplicate.csv
 ```
 或者可以更简洁一些:
 
 ```shell
 $ fofa duplicate -o data.csv -d ip -o duplicate.csv
+$ fofa duplicate -o data.csv -d ip,host,domain -o duplicate.csv
 ```
 
 ### Utils
