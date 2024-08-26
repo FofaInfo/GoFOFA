@@ -34,6 +34,7 @@ var (
 	workers       int    // number of workers
 	ratePerSecond int    // fofa request per second
 	template      string // template in pipeline mode
+	isActive      bool   // website active probe
 )
 
 // search subcommand
@@ -121,6 +122,12 @@ var searchCmd = &cli.Command{
 			Aliases:     []string{"i"},
 			Usage:       "input file to build template if not use pipeline mode",
 			Destination: &inFile,
+		},
+		&cli.BoolFlag{
+			Name:        "isActive",
+			Value:       false,
+			Usage:       "website active probe",
+			Destination: &isActive,
 		},
 	},
 	Action: SearchAction,
@@ -224,17 +231,21 @@ func SearchAction(ctx *cli.Context) error {
 
 	// gen writer
 	var writer outformats.OutWriter
+	var headFields = fields
+	if isActive {
+		headFields = append(headFields, "isActive")
+	}
 	if hasBodyField(fields) && format == "csv" {
 		logrus.Warnln("fields contains body, so change format to json")
-		writer = outformats.NewJSONWriter(outTo, fields)
+		writer = outformats.NewJSONWriter(outTo, headFields)
 	} else {
 		switch format {
 		case "csv":
 			writer = outformats.NewCSVWriter(outTo)
 		case "json":
-			writer = outformats.NewJSONWriter(outTo, fields)
+			writer = outformats.NewJSONWriter(outTo, headFields)
 		case "xml":
-			writer = outformats.NewXMLWriter(outTo, fields)
+			writer = outformats.NewXMLWriter(outTo, headFields)
 		default:
 			return fmt.Errorf("unknown format: %s", format)
 		}
@@ -250,6 +261,7 @@ func SearchAction(ctx *cli.Context) error {
 			UrlPrefix: urlPrefix,
 			Full:      full,
 			UniqByIP:  uniqByIP,
+			IsActive:  isActive,
 		})
 		if err != nil {
 			return err

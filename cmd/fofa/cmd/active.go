@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"git.gobies.org/goby/httpclient"
+	"github.com/LubyRuffy/gofofa"
 	"github.com/LubyRuffy/gofofa/pkg/outformats"
 	"github.com/urfave/cli/v2"
 	"io"
@@ -47,16 +47,6 @@ var activeCmd = &cli.Command{
 		},
 	},
 	Action: ActiveAction,
-}
-
-func checkActive(t string) bool {
-	fURL := httpclient.NewFixUrl(t)
-	cfg := httpclient.NewGetRequestConfig("/")
-	_, err := httpclient.DoHttpRequest(fURL, cfg)
-	if err != nil {
-		return false
-	}
-	return true
 }
 
 func pipelineLink(writeLink func(links []string) error, in io.Reader) {
@@ -128,8 +118,8 @@ func ActiveAction(ctx *cli.Context) error {
 
 		for _, l := range links {
 			var result []string
-			isActive := checkActive(l)
-			result = append(result, l, fmt.Sprintf("%t", isActive))
+			active := gofofa.CheckActive(l)
+			result = append(result, l, fmt.Sprintf("%t", active))
 			res = append(res, result)
 		}
 

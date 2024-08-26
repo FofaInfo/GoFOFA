@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -48,6 +49,7 @@ type SearchOptions struct {
 	UrlPrefix string // default is http://
 	Full      bool   // search result for over a year
 	UniqByIP  bool   // uniq by ip
+	IsActive  bool   // website active probe
 }
 
 // fixHostToUrl 替换host为url
@@ -151,9 +153,11 @@ func (c *Client) postProcess(res [][]string, fields []string,
 func (c *Client) HostSearch(query string, size int, fields []string, options ...SearchOptions) (res [][]string, err error) {
 	var full bool
 	var uniqByIP bool
+	var isActive bool
 	if len(options) > 0 {
 		full = options[0].Full
 		uniqByIP = options[0].UniqByIP
+		isActive = options[0].IsActive
 	}
 
 	freeSize := c.freeSize()
@@ -212,6 +216,24 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 		}
 	}
 
+	// 确认fields包含link
+	linkIndex := -1
+	var activeSlice []string
+	//activeIndex := -1
+	if isActive {
+		for index, f := range fields {
+			if f == "link" {
+				linkIndex = index
+				break
+			}
+		}
+		if linkIndex == -1 {
+			fields = append(fields, "link")
+			linkIndex = len(fields) - 1
+		}
+		//activeIndex = len(fields)
+	}
+
 	// 分页取数据
 	for {
 		if ctx := c.GetContext(); ctx != nil {
@@ -262,16 +284,25 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 						}
 						uniqIPMap[newSlice[ipIndex]] = true
 					}
+					if isActive {
+						active := CheckActive(newSlice[linkIndex])
+						activeSlice = append(activeSlice, fmt.Sprintf("%t", active))
+					}
 					results = append(results, newSlice)
 				} else if vStr, ok := result.(string); ok {
 					// 确定第一个就是ip
+					newSlice := []string{vStr}
 					if uniqByIP && ipIndex == 0 {
 						if _, ok := uniqIPMap[vStr]; ok {
 							continue
 						}
 						uniqIPMap[vStr] = true
 					}
-					results = append(results, []string{vStr})
+					if isActive && linkIndex == 0 {
+						active := CheckActive(vStr)
+						activeSlice = append(activeSlice, fmt.Sprintf("%t", active))
+					}
+					results = append(results, newSlice)
 				}
 			}
 		} else {
@@ -299,6 +330,11 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 
 	// 后处理
 	res = c.postProcess(res, fields, hostIndex, protocolIndex, rawFieldSize, options...)
+	if isActive {
+		for index := range res {
+			res[index] = append(res[index], activeSlice[index])
+		}
+	}
 
 	return
 }
