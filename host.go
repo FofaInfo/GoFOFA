@@ -45,11 +45,13 @@ type HostStatsData struct {
 
 // SearchOptions options of search, for post processors
 type SearchOptions struct {
-	FixUrl    bool   // each host fix as url, like 1.1.1.1,80 will change to http://1.1.1.1, https://1.1.1.1:8443 will no change
-	UrlPrefix string // default is http://
-	Full      bool   // search result for over a year
-	UniqByIP  bool   // uniq by ip
-	IsActive  bool   // website active probe
+	FixUrl     bool   // each host fix as url, like 1.1.1.1,80 will change to http://1.1.1.1, https://1.1.1.1:8443 will no change
+	UrlPrefix  string // default is http://
+	Full       bool   // search result for over a year
+	UniqByIP   bool   // uniq by ip
+	IsActive   bool   // website active probe
+	DedupCname bool   // deduplicate cname parse
+	SubDomain  string // check subdomain or service
 }
 
 // fixHostToUrl 替换host为url
@@ -78,6 +80,21 @@ func fixHostToUrl(res [][]string, fields []string, hostIndex int, urlPrefix stri
 		newRes = append(newRes, newRow)
 	}
 	return newRes
+}
+
+func getParamIndexThenAdd(fields []string, field string) (int, []string) {
+	paramIndex := -1
+	for index, f := range fields {
+		if f == field {
+			paramIndex = index
+			break
+		}
+	}
+	if paramIndex == -1 {
+		fields = append(fields, field)
+		paramIndex = len(fields) - 1
+	}
+	return paramIndex, fields
 }
 
 // fixUrlCheck 检查参数，构建新的field和记录相关字段的偏移
@@ -154,10 +171,12 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 	var full bool
 	var uniqByIP bool
 	var isActive bool
+	var dedupCname bool
 	if len(options) > 0 {
 		full = options[0].Full
 		uniqByIP = options[0].UniqByIP
 		isActive = options[0].IsActive
+		dedupCname = options[0].DedupCname
 	}
 
 	freeSize := c.freeSize()
@@ -202,36 +221,27 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 
 	uniqIPMap := make(map[string]bool)
 	// 确认fields包含ip
-	ipIndex := -1
+	var ipIndex = -1
 	if uniqByIP {
-		for index, f := range fields {
-			if f == "ip" {
-				ipIndex = index
-				break
-			}
-		}
-		if ipIndex == -1 {
-			fields = append(fields, "ip")
-			ipIndex = len(fields) - 1
-		}
+		ipIndex, fields = getParamIndexThenAdd(fields, "ip")
 	}
 
-	// 确认fields包含link
-	linkIndex := -1
 	var activeSlice []string
-	//activeIndex := -1
+	// 确认fields包含link
+	var linkIndex = -1
 	if isActive {
-		for index, f := range fields {
-			if f == "link" {
-				linkIndex = index
-				break
-			}
-		}
-		if linkIndex == -1 {
-			fields = append(fields, "link")
-			linkIndex = len(fields) - 1
-		}
-		//activeIndex = len(fields)
+		linkIndex, fields = getParamIndexThenAdd(fields, "link")
+	}
+
+	deduCnameMap := make(map[string]bool)
+	// 确认fields包含ip、port、domain、title、fid
+	var portIndex, domainIndex, titleIndex, fidIndex int = -1, -1, -1, -1
+	if dedupCname {
+		ipIndex, fields = getParamIndexThenAdd(fields, "ip")
+		portIndex, fields = getParamIndexThenAdd(fields, "port")
+		domainIndex, fields = getParamIndexThenAdd(fields, "domain")
+		titleIndex, fields = getParamIndexThenAdd(fields, "title")
+		fidIndex, fields = getParamIndexThenAdd(fields, "fid")
 	}
 
 	// 分页取数据
@@ -283,6 +293,14 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 							continue
 						}
 						uniqIPMap[newSlice[ipIndex]] = true
+					}
+					if dedupCname {
+						key := fmt.Sprintf("%s:%s:%s:%s:%s", newSlice[ipIndex], newSlice[portIndex],
+							newSlice[domainIndex], newSlice[titleIndex], newSlice[fidIndex])
+						if _, ok := deduCnameMap[key]; ok {
+							continue
+						}
+						deduCnameMap[key] = true
 					}
 					if isActive {
 						active := CheckActive(newSlice[linkIndex])

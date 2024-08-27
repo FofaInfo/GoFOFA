@@ -1,10 +1,14 @@
+## v0.2.21 add dedupCname and isActive in search command
+
+-   search of dedupCname use as: ```fofa search -f link --dedupCname host=baidu.com"```
+-   search of active use as: ```fofa search --isActive port=80```
+
 ## v0.2.20 add active and duplicate mode
 
 -   duplicate use as: ```fofa duplicate -o data.csv -d ip,host,domain -o duplicate.csv```
 -   active of target use as: ```fofa active -target baidu.com,fofa.info``` 
 -   active of file use as: ```fofa active -i target.txt```
--   active of pipline use as: ```fofa search -f link -s 3 port=80 | fofa active``` 
--   search of active use as: ```fofa search --isActive port=80```
+-   active of pipline use as: ```fofa search -f link -s 3 port=80 | fofa active```
 
 ## v0.2.19 add inFile in search command
 

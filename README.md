@@ -258,6 +258,21 @@ $ fofa -s 3 --isActive --format=xml port=80
 <result><ip>189.193.236.170</ip><port>80</port><isActive>false</isActive></result>
 ```
 
+- 如果你想要进行域名泛解析去重，可以使用dedupCname，-f可以支持其他字段选用link做为演示:
+
+```shell
+$ fofa -s 3 -f link domain=huashunxinan.net
+2024/08/27 17:19:04 query fofa of: domain=huashunxinan.net
+http://h8huumr2zdmwgy5.huashunxinan.net
+http://keygatjexlvsznh.huashunxinan.net
+http://jobs.huashunxinan.net
+$ fofa -s 3 -f link --dedupCname domain=huashunxinan.net
+2024/08/27 17:26:42 query fofa of: domain=huashunxinan.net
+http://h8huumr2zdmwgy5.huashunxinan.net
+https://fwtn2k7oigaiyla.huashunxinan.net
+http://huashunxinan.net
+```
+
 -   如果你想查看更多的debug信息，可以使用全局参数verbose:
 
 ```shell

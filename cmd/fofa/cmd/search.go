@@ -35,6 +35,7 @@ var (
 	ratePerSecond int    // fofa request per second
 	template      string // template in pipeline mode
 	isActive      bool   // website active probe
+	dedupCname    bool   // deduplicate cname parse
 )
 
 // search subcommand
@@ -128,6 +129,12 @@ var searchCmd = &cli.Command{
 			Value:       false,
 			Usage:       "website active probe",
 			Destination: &isActive,
+		},
+		&cli.BoolFlag{
+			Name:        "dedupCname",
+			Value:       false,
+			Usage:       "deduplicate cname parse",
+			Destination: &dedupCname,
 		},
 	},
 	Action: SearchAction,
@@ -257,11 +264,12 @@ func SearchAction(ctx *cli.Context) error {
 		log.Println("query fofa of:", query)
 		// do search
 		res, err := fofaCli.HostSearch(query, size, fields, gofofa.SearchOptions{
-			FixUrl:    fixUrl,
-			UrlPrefix: urlPrefix,
-			Full:      full,
-			UniqByIP:  uniqByIP,
-			IsActive:  isActive,
+			FixUrl:     fixUrl,
+			UrlPrefix:  urlPrefix,
+			Full:       full,
+			UniqByIP:   uniqByIP,
+			IsActive:   isActive,
+			DedupCname: dedupCname,
 		})
 		if err != nil {
 			return err
