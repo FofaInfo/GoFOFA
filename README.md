@@ -273,6 +273,36 @@ https://fwtn2k7oigaiyla.huashunxinan.net
 http://huashunxinan.net
 ```
 
+- isSubDomain去重，在fofa中subdomain代表网页数据，service代表协议数据，如果同时有网页数据和协议数据优先保存网页数据:
+
+```shell
+$ fofa -s 3 -f host,type "ip=106.75.95.206"
+2024/08/28 19:49:23 query fofa of: ip=106.75.95.206
+106.75.95.206,subdomain
+106.75.95.206:443,service
+106.75.95.206,service
+$ fofa -s 3 -f host,type --isSubDomain "ip=106.75.95.206"
+2024/08/28 19:52:30 query fofa of: ip=106.75.95.206
+https://106.75.95.206,subdomain
+106.75.95.206:443,service
+106.75.95.206,subdomain
+```
+
+- 如果你想要对某些字段进行过滤，你可以使用filter过滤器，它的值是一个布尔表达式:
+
+```shell
+$ fofa -s 3 -f host,title,status_code domain=huashunxinan.net
+2024/08/28 19:56:47 query fofa of: domain=huashunxinan.net
+eedwwsqpoq1yjrf.huashunxinan.net,301 Moved Permanently,301
+https://keygatjexlvsznh.huashunxinan.net,华顺信安-网络空间测绘的先行者,200
+https://i.huashunxinan.net,,301
+$ fofa -s 3 -f host,title,status_code -filter "status_code=='200'&&title!=''" domain=huashunxinan.net
+2024/08/27 17:26:42 query fofa of: domain=huashunxinan.net
+https://www.huashunxinan.net,华顺信安-网络空间测绘的先行者,200
+huashunxinan.net,华顺信安-网络空间测绘的先行者,200
+https://huashunxinan.net,华顺信安-网络空间测绘的先行者,200
+```
+
 -   如果你想查看更多的debug信息，可以使用全局参数verbose:
 
 ```shell

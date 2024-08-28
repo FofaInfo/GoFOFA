@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/Knetic/govaluate"
+	"github.com/expr-lang/expr"
 	"math"
 	"strconv"
 	"strings"
@@ -45,13 +47,14 @@ type HostStatsData struct {
 
 // SearchOptions options of search, for post processors
 type SearchOptions struct {
-	FixUrl     bool   // each host fix as url, like 1.1.1.1,80 will change to http://1.1.1.1, https://1.1.1.1:8443 will no change
-	UrlPrefix  string // default is http://
-	Full       bool   // search result for over a year
-	UniqByIP   bool   // uniq by ip
-	IsActive   bool   // website active probe
-	DedupCname bool   // deduplicate cname parse
-	SubDomain  string // check subdomain or service
+	FixUrl      bool   // each host fix as url, like 1.1.1.1,80 will change to http://1.1.1.1, https://1.1.1.1:8443 will no change
+	UrlPrefix   string // default is http://
+	Full        bool   // search result for over a year
+	UniqByIP    bool   // uniq by ip
+	IsActive    bool   // website active probe
+	DedupCname  bool   // deduplicate cname parse
+	Filter      string // filter data by rules
+	IsSubDomain bool   // prioritize subdomain data retention
 }
 
 // fixHostToUrl 替换host为url
@@ -95,6 +98,16 @@ func getParamIndexThenAdd(fields []string, field string) (int, []string) {
 		paramIndex = len(fields) - 1
 	}
 	return paramIndex, fields
+}
+
+func extractVariables(filter string) ([]string, error) {
+	f, err := govaluate.NewEvaluableExpression(filter)
+	if err != nil {
+		return nil, err
+	}
+
+	variables := f.Vars()
+	return variables, nil
 }
 
 // fixUrlCheck 检查参数，构建新的field和记录相关字段的偏移
@@ -168,15 +181,21 @@ func (c *Client) postProcess(res [][]string, fields []string,
 // fields of fofa host search
 // options for search
 func (c *Client) HostSearch(query string, size int, fields []string, options ...SearchOptions) (res [][]string, err error) {
-	var full bool
-	var uniqByIP bool
-	var isActive bool
-	var dedupCname bool
+	var (
+		full        bool
+		uniqByIP    bool
+		isActive    bool
+		dedupCname  bool
+		isSubDomain bool
+		filter      string
+	)
 	if len(options) > 0 {
 		full = options[0].Full
 		uniqByIP = options[0].UniqByIP
 		isActive = options[0].IsActive
 		dedupCname = options[0].DedupCname
+		filter = options[0].Filter
+		isSubDomain = options[0].IsSubDomain
 	}
 
 	freeSize := c.freeSize()
@@ -244,6 +263,30 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 		fidIndex, fields = getParamIndexThenAdd(fields, "fid")
 	}
 
+	// 过滤器配置
+	filterIndexs := make(map[string]int)
+	if len(filter) > 0 {
+		var variables []string
+		variables, err = extractVariables(filter)
+		if err != nil {
+			return nil, err
+		}
+
+		var filterIndex = -1
+		for _, filterField := range variables {
+			filterIndex, fields = getParamIndexThenAdd(fields, filterField)
+			filterIndexs[filterField] = filterIndex
+		}
+	}
+
+	isSubDomainMap := make(map[string][]string)
+	// 确认fields包含type
+	typeIndex := -1
+	if isSubDomain {
+		typeIndex, fields = getParamIndexThenAdd(fields, "type")
+		linkIndex, fields = getParamIndexThenAdd(fields, "link")
+	}
+
 	// 分页取数据
 	for {
 		if ctx := c.GetContext(); ctx != nil {
@@ -302,6 +345,26 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 						}
 						deduCnameMap[key] = true
 					}
+					if len(filter) > 0 {
+						env := make(map[string]interface{})
+						for field, index := range filterIndexs {
+							env[field] = newSlice[index]
+						}
+
+						program, err := expr.Compile(filter, expr.Env(env))
+						if err != nil {
+							return nil, err
+						}
+
+						match, err := expr.Run(program, env)
+						if err != nil {
+							return nil, err
+						}
+
+						if !match.(bool) {
+							continue
+						}
+					}
 					if isActive {
 						active := CheckActive(newSlice[linkIndex])
 						activeSlice = append(activeSlice, fmt.Sprintf("%t", active))
@@ -344,6 +407,29 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 		}
 
 		page++ // 翻页
+	}
+
+	if isSubDomain {
+		var result [][]string
+		for _, row := range res {
+			exist, found := isSubDomainMap[row[linkIndex]]
+			if found {
+				if row[linkIndex] == "" {
+					result = append(result, row)
+					continue
+				}
+				if !(exist[typeIndex] == "service" && row[typeIndex] == "subdomain") {
+					continue
+				}
+			}
+			isSubDomainMap[row[linkIndex]] = row
+		}
+
+		for _, v := range isSubDomainMap {
+			result = append(result, v)
+		}
+
+		res = result
 	}
 
 	// 后处理

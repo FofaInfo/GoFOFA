@@ -36,6 +36,8 @@ var (
 	template      string // template in pipeline mode
 	isActive      bool   // website active probe
 	dedupCname    bool   // deduplicate cname parse
+	filter        string // filter data by rules
+	isSubDomain   bool   // prioritize subdomain data retention
 )
 
 // search subcommand
@@ -135,6 +137,18 @@ var searchCmd = &cli.Command{
 			Value:       false,
 			Usage:       "deduplicate cname parse",
 			Destination: &dedupCname,
+		},
+		&cli.StringFlag{
+			Name:        "filter",
+			Value:       "",
+			Usage:       "filter data by rules",
+			Destination: &filter,
+		},
+		&cli.BoolFlag{
+			Name:        "isSubDomain",
+			Value:       false,
+			Usage:       "prioritize subdomain data retention",
+			Destination: &isSubDomain,
 		},
 	},
 	Action: SearchAction,
@@ -264,12 +278,14 @@ func SearchAction(ctx *cli.Context) error {
 		log.Println("query fofa of:", query)
 		// do search
 		res, err := fofaCli.HostSearch(query, size, fields, gofofa.SearchOptions{
-			FixUrl:     fixUrl,
-			UrlPrefix:  urlPrefix,
-			Full:       full,
-			UniqByIP:   uniqByIP,
-			IsActive:   isActive,
-			DedupCname: dedupCname,
+			FixUrl:      fixUrl,
+			UrlPrefix:   urlPrefix,
+			Full:        full,
+			UniqByIP:    uniqByIP,
+			IsActive:    isActive,
+			DedupCname:  dedupCname,
+			Filter:      filter,
+			IsSubDomain: isSubDomain,
 		})
 		if err != nil {
 			return err

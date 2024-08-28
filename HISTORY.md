@@ -1,3 +1,8 @@
+## v0.2.22 add filter and isSubDomain in search command
+
+-   search of filter use as: ```fofa search -f host,title,status_code -filter "status_code=='200'&&title!=''" host=baidu.com"```
+-   search of isSubDomain use as: ```fofa search -f host,type --isSubDomain port=80```
+
 ## v0.2.21 add dedupCname and isActive in search command
 
 -   search of dedupCname use as: ```fofa search -f link --dedupCname host=baidu.com"```
