@@ -289,6 +289,21 @@ func SearchAction(ctx *cli.Context) error {
 		}
 	}
 
+	if headline && format == "csv" {
+		// 将首字母大写
+		for i, v := range headFields {
+			if v == "ip" {
+				headFields[i] = strings.ToUpper(v)
+				continue
+			}
+			headFields[i] = strings.ToUpper(v[:1]) + v[1:]
+		}
+		err := writer.WriteAll([][]string{headFields})
+		if err != nil {
+			return err
+		}
+	}
+
 	var locker sync.Mutex
 
 	writeQuery := func(query string) error {
@@ -311,12 +326,6 @@ func SearchAction(ctx *cli.Context) error {
 		// output
 		locker.Lock()
 		defer locker.Unlock()
-		if headline && format == "csv" {
-			err = writer.WriteAll([][]string{headFields})
-			if err != nil {
-				return err
-			}
-		}
 		if err = writer.WriteAll(res); err != nil {
 			return err
 		}
