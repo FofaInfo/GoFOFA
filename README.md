@@ -303,6 +303,12 @@ huashunxinan.net,华顺信安-网络空间测绘的先行者,200
 https://huashunxinan.net,华顺信安-网络空间测绘的先行者,200
 ```
 
+-   如果你想在输出csv文件的时候添加表头，可以使用参数```--headline```（只有在format为csv的情况下才可以使用）:
+
+```shell
+$ fofa search -f host,port --headline -o output.csv port=80
+```
+
 -   如果你想查看更多的debug信息，可以使用全局参数```--verbose```:
 
 ```shell

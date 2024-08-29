@@ -38,6 +38,7 @@ var (
 	dedupCname    bool   // deduplicate cname parse
 	filter        string // filter data by rules
 	isSubDomain   bool   // prioritize subdomain data retention
+	headline      bool   // add headline for csv
 )
 
 // search subcommand
@@ -150,6 +151,12 @@ var searchCmd = &cli.Command{
 			Usage:       "prioritize subdomain data retention",
 			Destination: &isSubDomain,
 		},
+		&cli.BoolFlag{
+			Name:        "headline",
+			Value:       false,
+			Usage:       "add headline for csv",
+			Destination: &headline,
+		},
 	},
 	Action: SearchAction,
 }
@@ -236,6 +243,11 @@ func SearchAction(ctx *cli.Context) error {
 		return errors.New("fofa fields cannot be empty")
 	}
 
+	// headline只允许在format=csv的情况下使用
+	if headline && format != "csv" {
+		return errors.New("headline param is only allowed if format is csv")
+	}
+
 	// gen output
 	var outTo io.Writer
 	if len(outFile) > 0 {
@@ -294,6 +306,12 @@ func SearchAction(ctx *cli.Context) error {
 		// output
 		locker.Lock()
 		defer locker.Unlock()
+		if headline && format == "csv" {
+			err = writer.WriteAll([][]string{headFields})
+			if err != nil {
+				return err
+			}
+		}
 		if err = writer.WriteAll(res); err != nil {
 			return err
 		}
