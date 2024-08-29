@@ -147,6 +147,7 @@ func TestClient_HostSearch(t *testing.T) {
 	res, err = cli.HostSearch("port=80", 500, []string{"ip", "port"}, SearchOptions{})
 	assert.Nil(t, err)
 	assert.Equal(t, 1000, len(res))
+
 	res, err = cli.HostSearch("port=80", 500, []string{"ip", "port"}, SearchOptions{
 		UniqByIP: true,
 	})

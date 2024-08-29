@@ -1,6 +1,27 @@
+## v0.2.23 add headline in search command
+
+-   search of headline use as: ```fofa search -f host,port --headline -o output.csv port=80```
+
+## v0.2.22 add filter and dedupHost in search command
+
+-   search of filter use as: ```fofa search -f host,title,status_code -filter "status_code=='200'&&title!=''" host=baidu.com"```
+-   search of prefer-subdomain use as: ```fofa search -f host,type --dedupHost port=80```
+
+## v0.2.21 add noWildcard and isActive in search command
+
+-   search of no-wildcard use as: ```fofa search -f link --deWildcard 1 host=baidu.com"```
+-   search of active use as: ```fofa search --isActive port=80```
+
+## v0.2.20 add active and dedup mode
+
+-   dedup use as: ```fofa deduplicate -o data.csv -d ip,host,domain -o dedup.csv```
+-   active of target use as: ```fofa active -target baidu.com,fofa.info``` 
+-   active of file use as: ```fofa active -i target.txt```
+-   active of pipline use as: ```fofa search -f link -s 3 port=80 | fofa active```
+
 ## v0.2.19 add inFile in search command
 
--   use as: ```fofa -f host -uniqByIP -outFile b.cvs -rate 5 -inFile a.cvs```
+-   use as: ```fofa -f host -uniqByIP -outFile b.csv -rate 5 -inFile a.csv```
 -   fixed bug in pipeline mode raise `short write` error，support parallel write
     
 ## v0.2.18 add clue param in domains mode
@@ -63,13 +84,13 @@
 -   add web subcommand
 -   support workflow viz
 -   web support run workflow
-  
+
 ## v0.0.5 data pipeline
 
 -   add pipeline subcommand: ```./fofa pipeline 'fofa("body=icon && body=link", "body,host,ip,port") | grep_add("body", "(?is)<link[^>]*?rel[^>]*?icon[^>]*?>", "icon_tag") | drop("body")'```
 -   support gzip compress
 -   terminal color on debug output (```--verbose```)
-  
+
 ## v0.0.4 icon
 
 -   add icon subcommand: `./fofa icon --open http://www.baidu.com`
@@ -80,7 +101,7 @@
 -   add count subcommand: `./fofa count port=80`
 -   add stats subcommand: `./fofa stats port=80`
 -   add terminal color support
-  
+
 ## v0.0.2 code quality
 
 -   support default command to search: `./fofa port=80`

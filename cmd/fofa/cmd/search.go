@@ -34,6 +34,11 @@ var (
 	workers       int    // number of workers
 	ratePerSecond int    // fofa request per second
 	template      string // template in pipeline mode
+	isActive      bool   // probe website is existed, add isActive field
+	deWildcard    int    // number of wildcard domains retained
+	filter        string // filter data by rules
+	dedupHost     bool   // deduplicate by host
+	headline      bool   // add headline for csv
 )
 
 // search subcommand
@@ -58,7 +63,7 @@ var searchCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:        "outFile",
 			Aliases:     []string{"o"},
-			Usage:       "if not set, wirte to stdout",
+			Usage:       "if not set, write to stdout",
 			Destination: &outFile,
 		},
 		&cli.IntFlag{
@@ -121,6 +126,36 @@ var searchCmd = &cli.Command{
 			Aliases:     []string{"i"},
 			Usage:       "input file to build template if not use pipeline mode",
 			Destination: &inFile,
+		},
+		&cli.BoolFlag{
+			Name:        "isActive",
+			Value:       false,
+			Usage:       "probe website is existed, add isActive field",
+			Destination: &isActive,
+		},
+		&cli.IntFlag{
+			Name:        "deWildcard",
+			Value:       -1,
+			Usage:       "number of wildcard domains retained",
+			Destination: &deWildcard,
+		},
+		&cli.StringFlag{
+			Name:        "filter",
+			Value:       "",
+			Usage:       "filter data by rules",
+			Destination: &filter,
+		},
+		&cli.BoolFlag{
+			Name:        "dedupHost",
+			Value:       false,
+			Usage:       "deduplicate by host",
+			Destination: &dedupHost,
+		},
+		&cli.BoolFlag{
+			Name:        "headline",
+			Value:       false,
+			Usage:       "add headline for csv",
+			Destination: &headline,
 		},
 	},
 	Action: SearchAction,
@@ -208,6 +243,16 @@ func SearchAction(ctx *cli.Context) error {
 		return errors.New("fofa fields cannot be empty")
 	}
 
+	// headline只允许在format=csv的情况下使用
+	if headline && format != "csv" {
+		return errors.New("headline param is only allowed if format is csv")
+	}
+
+	// deWildcard不能为0
+	if deWildcard == 0 {
+		return errors.New("deWildcard param cannot be zero")
+	}
+
 	// gen output
 	var outTo io.Writer
 	if len(outFile) > 0 {
@@ -224,17 +269,21 @@ func SearchAction(ctx *cli.Context) error {
 
 	// gen writer
 	var writer outformats.OutWriter
+	var headFields = fields
+	if isActive {
+		headFields = append(headFields, "isActive")
+	}
 	if hasBodyField(fields) && format == "csv" {
 		logrus.Warnln("fields contains body, so change format to json")
-		writer = outformats.NewJSONWriter(outTo, fields)
+		writer = outformats.NewJSONWriter(outTo, headFields)
 	} else {
 		switch format {
 		case "csv":
 			writer = outformats.NewCSVWriter(outTo)
 		case "json":
-			writer = outformats.NewJSONWriter(outTo, fields)
+			writer = outformats.NewJSONWriter(outTo, headFields)
 		case "xml":
-			writer = outformats.NewXMLWriter(outTo, fields)
+			writer = outformats.NewXMLWriter(outTo, headFields)
 		default:
 			return fmt.Errorf("unknown format: %s", format)
 		}
@@ -246,10 +295,14 @@ func SearchAction(ctx *cli.Context) error {
 		log.Println("query fofa of:", query)
 		// do search
 		res, err := fofaCli.HostSearch(query, size, fields, gofofa.SearchOptions{
-			FixUrl:    fixUrl,
-			UrlPrefix: urlPrefix,
-			Full:      full,
-			UniqByIP:  uniqByIP,
+			FixUrl:     fixUrl,
+			UrlPrefix:  urlPrefix,
+			Full:       full,
+			UniqByIP:   uniqByIP,
+			IsActive:   isActive,
+			DeWildcard: deWildcard,
+			Filter:     filter,
+			DedupHost:  dedupHost,
 		})
 		if err != nil {
 			return err
@@ -258,6 +311,12 @@ func SearchAction(ctx *cli.Context) error {
 		// output
 		locker.Lock()
 		defer locker.Unlock()
+		if headline && format == "csv" {
+			err = writer.WriteAll([][]string{headFields})
+			if err != nil {
+				return err
+			}
+		}
 		if err = writer.WriteAll(res); err != nil {
 			return err
 		}
