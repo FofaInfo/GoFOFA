@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"git.gobies.org/mayuze/gofofa"
+	"github.com/LubyRuffy/gofofa"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )

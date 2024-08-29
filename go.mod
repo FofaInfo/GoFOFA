@@ -1,4 +1,4 @@
-module git.gobies.org/mayuze/gofofa
+module github.com/LubyRuffy/gofofa
 
 go 1.18
 
