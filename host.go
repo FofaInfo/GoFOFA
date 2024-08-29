@@ -51,7 +51,7 @@ type SearchOptions struct {
 	UrlPrefix  string // default is http://
 	Full       bool   // search result for over a year
 	UniqByIP   bool   // uniq by ip
-	IsActive   bool   // probe website is existed, add isActive field
+	IsActive   int    // probe website is existed, add isActive field
 	DeWildcard int    // number of wildcard domains retained
 	Filter     string // filter data by rules
 	DedupHost  bool   // prioritize subdomain data retention
@@ -184,7 +184,7 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 	var (
 		full        bool
 		uniqByIP    bool
-		isActive    bool
+		isActive    int
 		dedupCname  int
 		isSubDomain bool
 		filter      string
@@ -248,7 +248,7 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 	var activeSlice []string
 	// 确认fields包含link
 	var linkIndex, codeIndex = -1, -1
-	if isActive {
+	if isActive > 0 {
 		linkIndex, fields = getParamIndexThenAdd(fields, "link")
 		codeIndex, fields = getParamIndexThenAdd(fields, "status_code")
 	}
@@ -366,11 +366,10 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 							continue
 						}
 					}
-					if isActive {
-						active := CheckActive(newSlice[linkIndex])
-						activeSlice = append(activeSlice, fmt.Sprintf("%t", active))
-						code := HandleStatusCode(newSlice[linkIndex])
-						newSlice[codeIndex] = code
+					if isActive > 0 {
+						resp := DoHttpCheck(newSlice[linkIndex], isActive)
+						activeSlice = append(activeSlice, fmt.Sprintf("%t", resp.IsActive))
+						newSlice[codeIndex] = resp.StatusCode
 					}
 					results = append(results, newSlice)
 				} else if vStr, ok := result.(string); ok {
@@ -382,9 +381,9 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 						}
 						uniqIPMap[vStr] = true
 					}
-					if isActive && linkIndex == 0 {
-						active := CheckActive(vStr)
-						activeSlice = append(activeSlice, fmt.Sprintf("%t", active))
+					if isActive > 0 && linkIndex == 0 {
+						resp := DoHttpCheck(vStr, isActive)
+						activeSlice = append(activeSlice, fmt.Sprintf("%t", resp.IsActive))
 					}
 					results = append(results, newSlice)
 				}
@@ -437,7 +436,7 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 
 	// 后处理
 	res = c.postProcess(res, fields, hostIndex, protocolIndex, rawFieldSize, options...)
-	if isActive {
+	if isActive > 0 {
 		for index := range res {
 			res[index] = append(res[index], activeSlice[index])
 		}

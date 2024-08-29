@@ -34,7 +34,7 @@ var (
 	workers       int    // number of workers
 	ratePerSecond int    // fofa request per second
 	template      string // template in pipeline mode
-	isActive      bool   // probe website is existed, add isActive field
+	isActive      int    // probe website is existed, add isActive field
 	deWildcard    int    // number of wildcard domains retained
 	filter        string // filter data by rules
 	dedupHost     bool   // deduplicate by host
@@ -127,9 +127,9 @@ var searchCmd = &cli.Command{
 			Usage:       "input file to build template if not use pipeline mode",
 			Destination: &inFile,
 		},
-		&cli.BoolFlag{
+		&cli.IntFlag{
 			Name:        "isActive",
-			Value:       false,
+			Value:       -1,
 			Usage:       "probe website is existed, add isActive field",
 			Destination: &isActive,
 		},
@@ -253,6 +253,11 @@ func SearchAction(ctx *cli.Context) error {
 		return errors.New("deWildcard param cannot be zero")
 	}
 
+	// isActive不能为0
+	if isActive == 0 {
+		return errors.New("isActive param cannot be zero")
+	}
+
 	// gen output
 	var outTo io.Writer
 	if len(outFile) > 0 {
@@ -270,7 +275,7 @@ func SearchAction(ctx *cli.Context) error {
 	// gen writer
 	var writer outformats.OutWriter
 	var headFields = fields
-	if isActive {
+	if isActive > 0 {
 		headFields = append(headFields, "isActive")
 	}
 	if hasBodyField(fields) && format == "csv" {

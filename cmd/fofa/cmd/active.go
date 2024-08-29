@@ -14,7 +14,10 @@ import (
 	"sync"
 )
 
-var activeTarget string // single active target
+var (
+	activeTarget string // single active target
+	retry        int    // timeout retry count
+)
 
 var activeCmd = &cli.Command{
 	Name:  "active",
@@ -44,6 +47,12 @@ var activeCmd = &cli.Command{
 			Value:       10,
 			Usage:       "number of workers",
 			Destination: &workers,
+		},
+		&cli.IntFlag{
+			Name:        "retry",
+			Value:       3,
+			Usage:       "timeout retry count",
+			Destination: &retry,
 		},
 	},
 	Action: ActiveAction,
@@ -118,8 +127,8 @@ func ActiveAction(ctx *cli.Context) error {
 
 		for _, l := range links {
 			var result []string
-			active := gofofa.CheckActive(l)
-			result = append(result, l, fmt.Sprintf("%t", active))
+			resp := gofofa.DoHttpCheck(l, retry)
+			result = append(result, l, fmt.Sprintf("%t", resp.IsActive))
 			res = append(res, result)
 		}
 

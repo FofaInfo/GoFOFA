@@ -9,33 +9,33 @@ func TestCheckActive(t *testing.T) {
 	tests := []struct {
 		name          string
 		fixedHostInfo string
-		want          bool
+		want          Result
 	}{
 		// TODO: Add test cases.
 		{
 			name:          "Success base",
 			fixedHostInfo: "http://www.baidu.com",
-			want:          true,
+			want:          Result{true, "200"},
 		},
 		{
 			name:          "Fail base",
 			fixedHostInfo: "http://www.sadhdkashdaskjdhsajkhkjhdaskhd.com",
-			want:          false,
+			want:          Result{false, "0"},
 		},
 		{
 			name:          "IP base",
 			fixedHostInfo: "123.58.224.8",
-			want:          true,
+			want:          Result{true, "200"},
 		},
 		{
 			name:          "Domain base",
 			fixedHostInfo: "baidu.com",
-			want:          true,
+			want:          Result{true, "200"},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, CheckActive(tt.fixedHostInfo), "CheckActive(%v)", tt.fixedHostInfo)
+			assert.Equalf(t, tt.want, DoHttpCheck(tt.fixedHostInfo, 3), "CheckActive(%v)", tt.fixedHostInfo)
 		})
 	}
 }
