@@ -47,14 +47,14 @@ type HostStatsData struct {
 
 // SearchOptions options of search, for post processors
 type SearchOptions struct {
-	FixUrl      bool   // each host fix as url, like 1.1.1.1,80 will change to http://1.1.1.1, https://1.1.1.1:8443 will no change
-	UrlPrefix   string // default is http://
-	Full        bool   // search result for over a year
-	UniqByIP    bool   // uniq by ip
-	IsActive    bool   // probe website is existed
-	DedupCname  bool   // remove duplicate generic domain
-	Filter      string // filter data by rules
-	IsSubDomain bool   // prioritize subdomain data retention
+	FixUrl     bool   // each host fix as url, like 1.1.1.1,80 will change to http://1.1.1.1, https://1.1.1.1:8443 will no change
+	UrlPrefix  string // default is http://
+	Full       bool   // search result for over a year
+	UniqByIP   bool   // uniq by ip
+	IsActive   bool   // probe website is existed
+	noWildcard bool   // remove duplicate generic domain
+	Filter     string // filter data by rules
+	DedupHost  bool   // prioritize subdomain data retention
 }
 
 // fixHostToUrl 替换host为url
@@ -193,9 +193,9 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 		full = options[0].Full
 		uniqByIP = options[0].UniqByIP
 		isActive = options[0].IsActive
-		dedupCname = options[0].DedupCname
+		dedupCname = options[0].noWildcard
 		filter = options[0].Filter
-		isSubDomain = options[0].IsSubDomain
+		isSubDomain = options[0].DedupHost
 	}
 
 	freeSize := c.freeSize()

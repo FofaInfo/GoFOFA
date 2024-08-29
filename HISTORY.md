@@ -2,14 +2,14 @@
 
 -   search of headline use as: ```fofa search -f host,port --headline -o output.csv port=80```
 
-## v0.2.22 add filter and prefer-subdomain in search command
+## v0.2.22 add filter and dedupHost in search command
 
 -   search of filter use as: ```fofa search -f host,title,status_code -filter "status_code=='200'&&title!=''" host=baidu.com"```
--   search of prefer-subdomain use as: ```fofa search -f host,type --prefer-subdomain port=80```
+-   search of prefer-subdomain use as: ```fofa search -f host,type --dedupHost port=80```
 
-## v0.2.21 add no-wildcard and isActive in search command
+## v0.2.21 add noWildcard and isActive in search command
 
--   search of no-wildcard use as: ```fofa search -f link --no-wildcard host=baidu.com"```
+-   search of no-wildcard use as: ```fofa search -f link --noWildcard host=baidu.com"```
 -   search of active use as: ```fofa search --isActive port=80```
 
 ## v0.2.20 add active and dedup mode
@@ -21,7 +21,7 @@
 
 ## v0.2.19 add inFile in search command
 
--   use as: ```fofa -f host -uniqByIP -outFile b.cvs -rate 5 -inFile a.cvs```
+-   use as: ```fofa -f host -uniqByIP -outFile b.csv -rate 5 -inFile a.csv```
 -   fixed bug in pipeline mode raise `short write` error，support parallel write
     
 ## v0.2.18 add clue param in domains mode

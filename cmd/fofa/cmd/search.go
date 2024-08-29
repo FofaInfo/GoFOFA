@@ -35,9 +35,9 @@ var (
 	ratePerSecond int    // fofa request per second
 	template      string // template in pipeline mode
 	isActive      bool   // probe website is existed
-	dedupCname    bool   // remove duplicate generic domain
+	noWildcard    bool   // remove duplicate generic domain
 	filter        string // filter data by rules
-	isSubDomain   bool   // prioritize subdomain data retention
+	dedupHost     bool   // prioritize subdomain data retention
 	headline      bool   // add headline for csv
 )
 
@@ -134,10 +134,10 @@ var searchCmd = &cli.Command{
 			Destination: &isActive,
 		},
 		&cli.BoolFlag{
-			Name:        "no-wildcard",
+			Name:        "noWildcard",
 			Value:       false,
 			Usage:       "remove duplicate generic domain",
-			Destination: &dedupCname,
+			Destination: &noWildcard,
 		},
 		&cli.StringFlag{
 			Name:        "filter",
@@ -146,10 +146,10 @@ var searchCmd = &cli.Command{
 			Destination: &filter,
 		},
 		&cli.BoolFlag{
-			Name:        "prefer-subdomain",
+			Name:        "dedupHost",
 			Value:       false,
 			Usage:       "prioritize subdomain data retention",
-			Destination: &isSubDomain,
+			Destination: &dedupHost,
 		},
 		&cli.BoolFlag{
 			Name:        "headline",
@@ -290,14 +290,14 @@ func SearchAction(ctx *cli.Context) error {
 		log.Println("query fofa of:", query)
 		// do search
 		res, err := fofaCli.HostSearch(query, size, fields, gofofa.SearchOptions{
-			FixUrl:      fixUrl,
-			UrlPrefix:   urlPrefix,
-			Full:        full,
-			UniqByIP:    uniqByIP,
-			IsActive:    isActive,
-			DedupCname:  dedupCname,
-			Filter:      filter,
-			IsSubDomain: isSubDomain,
+			FixUrl:     fixUrl,
+			UrlPrefix:  urlPrefix,
+			Full:       full,
+			UniqByIP:   uniqByIP,
+			IsActive:   isActive,
+			DedupCname: noWildcard,
+			Filter:     filter,
+			DedupHost:  dedupHost,
 		})
 		if err != nil {
 			return err
