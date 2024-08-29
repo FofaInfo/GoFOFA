@@ -34,10 +34,10 @@ var (
 	workers       int    // number of workers
 	ratePerSecond int    // fofa request per second
 	template      string // template in pipeline mode
-	isActive      bool   // probe website is existed
-	noWildcard    bool   // remove duplicate generic domain
+	isActive      bool   // probe website is existed, add isActive field
+	deWildcard    int    // number of wildcard domains retained
 	filter        string // filter data by rules
-	dedupHost     bool   // prioritize subdomain data retention
+	dedupHost     bool   // deduplicate by host
 	headline      bool   // add headline for csv
 )
 
@@ -130,14 +130,14 @@ var searchCmd = &cli.Command{
 		&cli.BoolFlag{
 			Name:        "isActive",
 			Value:       false,
-			Usage:       "probe website is existed",
+			Usage:       "probe website is existed, add isActive field",
 			Destination: &isActive,
 		},
-		&cli.BoolFlag{
-			Name:        "noWildcard",
-			Value:       false,
-			Usage:       "remove duplicate generic domain",
-			Destination: &noWildcard,
+		&cli.IntFlag{
+			Name:        "deWildcard",
+			Value:       -1,
+			Usage:       "number of wildcard domains retained",
+			Destination: &deWildcard,
 		},
 		&cli.StringFlag{
 			Name:        "filter",
@@ -148,7 +148,7 @@ var searchCmd = &cli.Command{
 		&cli.BoolFlag{
 			Name:        "dedupHost",
 			Value:       false,
-			Usage:       "prioritize subdomain data retention",
+			Usage:       "deduplicate by host",
 			Destination: &dedupHost,
 		},
 		&cli.BoolFlag{
@@ -248,6 +248,11 @@ func SearchAction(ctx *cli.Context) error {
 		return errors.New("headline param is only allowed if format is csv")
 	}
 
+	// deWildcard不能为0
+	if deWildcard == 0 {
+		return errors.New("deWildcard param cannot be zero")
+	}
+
 	// gen output
 	var outTo io.Writer
 	if len(outFile) > 0 {
@@ -295,7 +300,7 @@ func SearchAction(ctx *cli.Context) error {
 			Full:       full,
 			UniqByIP:   uniqByIP,
 			IsActive:   isActive,
-			DedupCname: noWildcard,
+			DeWildcard: deWildcard,
 			Filter:     filter,
 			DedupHost:  dedupHost,
 		})

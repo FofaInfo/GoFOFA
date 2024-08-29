@@ -9,7 +9,7 @@
 
 ## v0.2.21 add noWildcard and isActive in search command
 
--   search of no-wildcard use as: ```fofa search -f link --noWildcard host=baidu.com"```
+-   search of no-wildcard use as: ```fofa search -f link --deWildcard 1 host=baidu.com"```
 -   search of active use as: ```fofa search --isActive port=80```
 
 ## v0.2.20 add active and dedup mode

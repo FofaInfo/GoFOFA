@@ -51,8 +51,8 @@ type SearchOptions struct {
 	UrlPrefix  string // default is http://
 	Full       bool   // search result for over a year
 	UniqByIP   bool   // uniq by ip
-	IsActive   bool   // probe website is existed
-	noWildcard bool   // remove duplicate generic domain
+	IsActive   bool   // probe website is existed, add isActive field
+	DeWildcard int    // number of wildcard domains retained
 	Filter     string // filter data by rules
 	DedupHost  bool   // prioritize subdomain data retention
 }
@@ -185,7 +185,7 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 		full        bool
 		uniqByIP    bool
 		isActive    bool
-		dedupCname  bool
+		dedupCname  int
 		isSubDomain bool
 		filter      string
 	)
@@ -193,7 +193,7 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 		full = options[0].Full
 		uniqByIP = options[0].UniqByIP
 		isActive = options[0].IsActive
-		dedupCname = options[0].noWildcard
+		dedupCname = options[0].DeWildcard
 		filter = options[0].Filter
 		isSubDomain = options[0].DedupHost
 	}
@@ -252,10 +252,10 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 		linkIndex, fields = getParamIndexThenAdd(fields, "link")
 	}
 
-	deduCnameMap := make(map[string]bool)
+	dedupCnameMap := make(map[string]int)
 	// 确认fields包含ip、port、domain、title、fid
 	var portIndex, domainIndex, titleIndex, fidIndex int = -1, -1, -1, -1
-	if dedupCname {
+	if dedupCname > 0 {
 		ipIndex, fields = getParamIndexThenAdd(fields, "ip")
 		portIndex, fields = getParamIndexThenAdd(fields, "port")
 		domainIndex, fields = getParamIndexThenAdd(fields, "domain")
@@ -337,13 +337,13 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 						}
 						uniqIPMap[newSlice[ipIndex]] = true
 					}
-					if dedupCname {
+					if dedupCname > 0 {
 						key := fmt.Sprintf("%s:%s:%s:%s:%s", newSlice[ipIndex], newSlice[portIndex],
 							newSlice[domainIndex], newSlice[titleIndex], newSlice[fidIndex])
-						if _, ok := deduCnameMap[key]; ok {
+						if _, ok := dedupCnameMap[key]; ok && dedupCnameMap[key] > 3 {
 							continue
 						}
-						deduCnameMap[key] = true
+						dedupCnameMap[key]++
 					}
 					if len(filter) > 0 {
 						env := make(map[string]interface{})

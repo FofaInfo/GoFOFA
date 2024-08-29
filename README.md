@@ -258,7 +258,7 @@ $ fofa -s 3 --isActive --format=xml port=80
 <result><ip>189.193.236.170</ip><port>80</port><isActive>false</isActive></result>
 ```
 
-- 如果你想要进行域名泛解析去重，可以使用```noWildcard```，```-f```可以支持其他字段选用link做为演示:
+- 如果你想要减少泛域名数量，可以使用```deWildcard```设置保留泛域名数量，```-f```可以支持其他字段选用link做为演示:
 
 ```shell
 $ fofa -s 3 -f link domain=huashunxinan.net
@@ -266,7 +266,7 @@ $ fofa -s 3 -f link domain=huashunxinan.net
 http://h8huumr2zdmwgy5.huashunxinan.net
 http://keygatjexlvsznh.huashunxinan.net
 http://jobs.huashunxinan.net
-$ fofa -s 3 -f link --noWildcard domain=huashunxinan.net
+$ fofa -s 3 -f link --deWildcard 1 domain=huashunxinan.net
 2024/08/27 17:26:42 query fofa of: domain=huashunxinan.net
 http://h8huumr2zdmwgy5.huashunxinan.net
 https://fwtn2k7oigaiyla.huashunxinan.net
