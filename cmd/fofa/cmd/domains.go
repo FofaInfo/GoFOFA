@@ -3,7 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github.com/LubyRuffy/gofofa"
+	"git.gobies.org/mayuze/gofofa"
 	"github.com/urfave/cli/v2"
 	"github.com/weppos/publicsuffix-go/publicsuffix"
 	"io"

@@ -3,8 +3,8 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github.com/LubyRuffy/gofofa"
-	"github.com/LubyRuffy/gofofa/pkg/outformats"
+	"git.gobies.org/mayuze/gofofa"
+	"git.gobies.org/mayuze/gofofa/pkg/outformats"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"math/rand"
