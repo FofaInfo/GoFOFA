@@ -238,7 +238,7 @@ $ fofa --size 1 --fields "host" --fixUrl --urlPrefix "redis://" protocol=redis
 redis://139.9.222.14:7000
 ```
 
-- 如果你想要进行web存活探测，可以使用```active```:
+- 如果你想要进行web存活探测，可以使用```active```（使用这个参数之后也会重新获取status_code数据）:
 
 ```shell
 $ fofa -s 3 --isActive port=80 

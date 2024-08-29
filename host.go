@@ -247,9 +247,10 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 
 	var activeSlice []string
 	// 确认fields包含link
-	var linkIndex = -1
+	var linkIndex, codeIndex = -1, -1
 	if isActive {
 		linkIndex, fields = getParamIndexThenAdd(fields, "link")
+		codeIndex, fields = getParamIndexThenAdd(fields, "status_code")
 	}
 
 	dedupCnameMap := make(map[string]int)
@@ -368,6 +369,8 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 					if isActive {
 						active := CheckActive(newSlice[linkIndex])
 						activeSlice = append(activeSlice, fmt.Sprintf("%t", active))
+						code := HandleStatusCode(newSlice[linkIndex])
+						newSlice[codeIndex] = code
 					}
 					results = append(results, newSlice)
 				} else if vStr, ok := result.(string); ok {
