@@ -28,7 +28,7 @@ var GlobalCommands = []*cli.Command{
 	dumpCmd,
 	domainsCmd,
 	activeCmd,
-	duplicateCmd,
+	dedupCmd,
 }
 
 // IsValidCommand valid command name

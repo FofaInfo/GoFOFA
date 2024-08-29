@@ -34,8 +34,8 @@ var (
 	workers       int    // number of workers
 	ratePerSecond int    // fofa request per second
 	template      string // template in pipeline mode
-	isActive      bool   // website active probe
-	dedupCname    bool   // deduplicate cname parse
+	isActive      bool   // probe website is existed
+	dedupCname    bool   // remove duplicate generic domain
 	filter        string // filter data by rules
 	isSubDomain   bool   // prioritize subdomain data retention
 	headline      bool   // add headline for csv
@@ -130,13 +130,13 @@ var searchCmd = &cli.Command{
 		&cli.BoolFlag{
 			Name:        "isActive",
 			Value:       false,
-			Usage:       "website active probe",
+			Usage:       "probe website is existed",
 			Destination: &isActive,
 		},
 		&cli.BoolFlag{
 			Name:        "no-wildcard",
 			Value:       false,
-			Usage:       "deduplicate cname parse",
+			Usage:       "remove duplicate generic domain",
 			Destination: &dedupCname,
 		},
 		&cli.StringFlag{
@@ -146,7 +146,7 @@ var searchCmd = &cli.Command{
 			Destination: &filter,
 		},
 		&cli.BoolFlag{
-			Name:        "isSubDomain",
+			Name:        "prefer-subdomain",
 			Value:       false,
 			Usage:       "prioritize subdomain data retention",
 			Destination: &isSubDomain,

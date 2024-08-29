@@ -51,8 +51,8 @@ type SearchOptions struct {
 	UrlPrefix   string // default is http://
 	Full        bool   // search result for over a year
 	UniqByIP    bool   // uniq by ip
-	IsActive    bool   // website active probe
-	DedupCname  bool   // deduplicate cname parse
+	IsActive    bool   // probe website is existed
+	DedupCname  bool   // remove duplicate generic domain
 	Filter      string // filter data by rules
 	IsSubDomain bool   // prioritize subdomain data retention
 }

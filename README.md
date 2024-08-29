@@ -273,7 +273,7 @@ https://fwtn2k7oigaiyla.huashunxinan.net
 http://huashunxinan.net
 ```
 
-- ```isSubDomain```去重，在fofa中subdomain代表网页数据，service代表协议数据，如果相同host的subdomain和service数据，优先保留subdomain数据（如果都不使用此参数默认都会保留subdomain和service数据）:
+- ```--prefer-subdomain```，在fofa中subdomain代表网页数据，service代表协议数据，如果host相同，优先保留subdomain数据:
 
 ```shell
 $ fofa -s 3 -f host,type "ip=106.75.95.206"
@@ -281,7 +281,7 @@ $ fofa -s 3 -f host,type "ip=106.75.95.206"
 106.75.95.206,subdomain
 106.75.95.206:443,service
 106.75.95.206,service
-$ fofa -s 3 -f host,type --isSubDomain "ip=106.75.95.206"
+$ fofa -s 3 -f host,type --prefer-subdomain "ip=106.75.95.206"
 2024/08/28 19:52:30 query fofa of: ip=106.75.95.206
 https://106.75.95.206,subdomain
 106.75.95.206:443,service
@@ -520,21 +520,21 @@ http://rw823.tcxzgh.org,true
 http://sb823.tcxzgh.org,true
 ```
 
-### Deduplicate
+### Dedup
 
 > 去重
 
-- deduplicate支持对一个csv文件中的某一个字段进行去重，通过input参数上传文件，通过duplicate参数选择去重字段（会根据字段顺序进行去重），通过output设置输出文件名（默认duplicate.csv）:
+- dedup支持对一个csv文件中的某一个字段进行去重，通过input参数上传文件，通过dedup参数选择去重字段（会根据字段顺序进行去重），通过output设置输出文件名（默认duplicate.csv）:
 
 ```shell
-$ fofa deduplicate -output data.csv -duplicate ip -output duplicate.csv
-$ fofa deduplicate -output data.csv -duplicate ip,host,domain -output duplicate.csv
+$ fofa dedup -output data.csv -dedup ip -output dedup.csv
+$ fofa dedup -output data.csv -dedup ip,host,domain -output dedup.csv
 ```
 或者可以更简洁一些:
 
 ```shell
-$ fofa deduplicate -o data.csv -d ip -o duplicate.csv
-$ fofa deduplicate -o data.csv -d ip,host,domain -o duplicate.csv
+$ fofa dedup -o data.csv -d ip -o dedup.csv
+$ fofa dedup -o data.csv -d ip,host,domain -o dedup.csv
 ```
 
 ### Utils
