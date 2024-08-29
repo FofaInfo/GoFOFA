@@ -10,11 +10,11 @@ import (
 )
 
 var (
-	duplicateString string
+	deduplicateString string
 )
 
 var duplicateCmd = &cli.Command{
-	Name:                   "duplicate",
+	Name:                   "deduplicate",
 	Usage:                  "remove duplicate tool",
 	UseShortOptionHandling: true,
 	Flags: []cli.Flag{
@@ -22,7 +22,7 @@ var duplicateCmd = &cli.Command{
 			Name:        "duplicate",
 			Aliases:     []string{"d"},
 			Usage:       "remove duplicate according to the fields",
-			Destination: &duplicateString,
+			Destination: &deduplicateString,
 		},
 		&cli.StringFlag{
 			Name:        "inFile",
@@ -39,7 +39,7 @@ var duplicateCmd = &cli.Command{
 		},
 	},
 
-	Action: duplicateAction,
+	Action: deduplicateAction,
 }
 
 func isCSV(filename string) bool {
@@ -121,13 +121,13 @@ func deduplicates(records [][]string, fields []string) ([][]string, error) {
 	return uniqueRecords, nil
 }
 
-func duplicateAction(ctx *cli.Context) error {
+func deduplicateAction(ctx *cli.Context) error {
 	// valid same config
 	if len(ctx.Args().Slice()) > 0 {
 		return errors.New("Use -h to find help ")
 	}
 
-	duplicate := strings.Split(duplicateString, ",")
+	duplicate := strings.Split(deduplicateString, ",")
 	if len(duplicate) == 0 || len(inFile) == 0 {
 		return errors.New("flag needs arguments: -d field -i target.csv")
 	}

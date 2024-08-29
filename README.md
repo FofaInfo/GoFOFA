@@ -230,7 +230,7 @@ $ fofa --size 2 --fields "host" --fixUrl title=Gitblit
 http://pmsningbo.veritrans.cn:20202
 http://platform.starpost.cn:8080
 ```
-- 如果你想要使用其他的前缀，可以使用urlPrefix:
+- 如果你想要使用其他的前缀，可以使用`urlPrefix`:
 
 ```shell
 $ fofa --size 1 --fields "host" --fixUrl --urlPrefix "redis://" protocol=redis
@@ -238,7 +238,7 @@ $ fofa --size 1 --fields "host" --fixUrl --urlPrefix "redis://" protocol=redis
 redis://139.9.222.14:7000
 ```
 
-- 如果你想要进行web存活探测，可以使用active:
+- 如果你想要进行web存活探测，可以使用```active```:
 
 ```shell
 $ fofa -s 3 --isActive port=80 
@@ -258,7 +258,7 @@ $ fofa -s 3 --isActive --format=xml port=80
 <result><ip>189.193.236.170</ip><port>80</port><isActive>false</isActive></result>
 ```
 
-- 如果你想要进行域名泛解析去重，可以使用dedupCname，-f可以支持其他字段选用link做为演示:
+- 如果你想要进行域名泛解析去重，可以使用```--no-wildcard```，```-f```可以支持其他字段选用link做为演示:
 
 ```shell
 $ fofa -s 3 -f link domain=huashunxinan.net
@@ -266,14 +266,14 @@ $ fofa -s 3 -f link domain=huashunxinan.net
 http://h8huumr2zdmwgy5.huashunxinan.net
 http://keygatjexlvsznh.huashunxinan.net
 http://jobs.huashunxinan.net
-$ fofa -s 3 -f link --dedupCname domain=huashunxinan.net
+$ fofa -s 3 -f link --no-wildcard domain=huashunxinan.net
 2024/08/27 17:26:42 query fofa of: domain=huashunxinan.net
 http://h8huumr2zdmwgy5.huashunxinan.net
 https://fwtn2k7oigaiyla.huashunxinan.net
 http://huashunxinan.net
 ```
 
-- isSubDomain去重，在fofa中subdomain代表网页数据，service代表协议数据，如果同时有网页数据和协议数据优先保存网页数据:
+- ```isSubDomain```去重，在fofa中subdomain代表网页数据，service代表协议数据，如果相同host的subdomain和service数据，优先保留subdomain数据（如果都不使用此参数默认都会保留subdomain和service数据）:
 
 ```shell
 $ fofa -s 3 -f host,type "ip=106.75.95.206"
@@ -288,7 +288,7 @@ https://106.75.95.206,subdomain
 106.75.95.206,subdomain
 ```
 
-- 如果你想要对某些字段进行过滤，你可以使用filter过滤器，它的值是一个布尔表达式:
+- 如果你想要针对结果进行过滤，你可以使用```-filter```过滤器，它的值是一个布尔表达式，保留符合filter表达式结果的数据:
 
 ```shell
 $ fofa -s 3 -f host,title,status_code domain=huashunxinan.net
@@ -303,7 +303,7 @@ huashunxinan.net,华顺信安-网络空间测绘的先行者,200
 https://huashunxinan.net,华顺信安-网络空间测绘的先行者,200
 ```
 
--   如果你想查看更多的debug信息，可以使用全局参数verbose:
+-   如果你想查看更多的debug信息，可以使用全局参数```--verbose```:
 
 ```shell
 $ fofa --verbose search port=80
@@ -315,7 +315,7 @@ $ fofa --verbose search port=80
 $ fofa -fields "host" -fixUrl 'app="Aspera-Faspex"' | nuclei -t http/cves/2022/CVE-2022-47986.yaml
 ```
 
--   如果你想要根据ip进行去重，可以使用uniqByIP:
+-   如果你想要根据ip进行去重，可以使用```--uniqByIP```:
 
 ```shell
 $ fofa --fixUrl --size 5 --fields host ip=123.58.224.8
@@ -514,21 +514,21 @@ http://rw823.tcxzgh.org,true
 http://sb823.tcxzgh.org,true
 ```
 
-### Duplicate
+### Deduplicate
 
 > 去重
 
-- duplicate支持对一个csv文件中的某一个字段进行去重，通过input参数上传文件，通过duplicate参数选择去重字段（会根据字段顺序进行去重），通过output设置输出文件名（默认duplicate.csv）:
+- deduplicate支持对一个csv文件中的某一个字段进行去重，通过input参数上传文件，通过duplicate参数选择去重字段（会根据字段顺序进行去重），通过output设置输出文件名（默认duplicate.csv）:
 
 ```shell
-$ fofa duplicate -output data.csv -duplicate ip -output duplicate.csv
-$ fofa duplicate -output data.csv -duplicate ip,host,domain -output duplicate.csv
+$ fofa deduplicate -output data.csv -duplicate ip -output duplicate.csv
+$ fofa deduplicate -output data.csv -duplicate ip,host,domain -output duplicate.csv
 ```
 或者可以更简洁一些:
 
 ```shell
-$ fofa duplicate -o data.csv -d ip -o duplicate.csv
-$ fofa duplicate -o data.csv -d ip,host,domain -o duplicate.csv
+$ fofa deduplicate -o data.csv -d ip -o duplicate.csv
+$ fofa deduplicate -o data.csv -d ip,host,domain -o duplicate.csv
 ```
 
 ### Utils

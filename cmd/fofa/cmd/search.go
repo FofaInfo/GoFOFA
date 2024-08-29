@@ -133,7 +133,7 @@ var searchCmd = &cli.Command{
 			Destination: &isActive,
 		},
 		&cli.BoolFlag{
-			Name:        "dedupCname",
+			Name:        "no-wildcard",
 			Value:       false,
 			Usage:       "deduplicate cname parse",
 			Destination: &dedupCname,
