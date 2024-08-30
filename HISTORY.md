@@ -7,10 +7,10 @@
 -   search of filter use as: ```fofa search -f host,title,status_code -filter "status_code=='200'&&title!=''" host=baidu.com"```
 -   search of prefer-subdomain use as: ```fofa search -f host,type --dedupHost port=80```
 
-## v0.2.21 add noWildcard and isActive in search command
+## v0.2.21 add noWildcard and checkActive in search command
 
 -   search of no-wildcard use as: ```fofa search -f link --deWildcard 1 host=baidu.com"```
--   search of active use as: ```fofa search --isActive port=80```
+-   search of checkActive use as: ```fofa search --checkActive 3 port=80```
 
 ## v0.2.20 add active and dedup mode
 
