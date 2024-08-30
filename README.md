@@ -31,13 +31,13 @@ $ go install github.com/LubyRuffy/gofofa/cmd/fofa@latest
 ```
 $ fofa
 NAME:
-   fofa - fofa client on Go v0.2.17, commit none, built at unknown
+   fofa - fofa client on Go v0.2.23, commit none, built at unknown
 
 USAGE:
    fofa [global options] command [command options] [arguments...]
 
 VERSION:
-   v0.2.17
+   v0.2.23
 
 AUTHOR:
    LubyRuffy <lubyruffy@gmail.com>
@@ -52,10 +52,12 @@ COMMANDS:
    host     fofa host
    dump     fofa dump data
    domains  extend domains from a domain
+   active   website active
+   dedup    remove duplicate tool
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --fofaURL value, -u value  format: <url>/?email=<email>&key=<key>&version=<v2> (default: "https://fofa.info/?email=youremail&key=yourkey&version=v1")
+   --fofaURL value, -u value  format: <url>/?email=<email>&key=<key>&version=<v2> (default: "https://fofa.info/?email=your_email&key=your_key&version=v1")
    --verbose                  print more information (default: false)
    --accountDebug             print account in error log (default: false)
    --help, -h                 show help (default: false)
@@ -65,7 +67,7 @@ GLOBAL OPTIONS:
 - 配置环境变量:
 
 ```
-$ FOFA_CLIENT_URL='https://fofa.info/?email=xxx@gmail.com&key=xxx'
+$ FOFA_CLIENT_URL='https://fofa.info/?email=your_email&key=your_key'
 ```
 
 ### Search
