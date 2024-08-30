@@ -238,20 +238,20 @@ $ fofa --size 1 --fields "host" --fixUrl --urlPrefix "redis://" protocol=redis
 redis://139.9.222.14:7000
 ```
 
-- 如果你想要进行web存活探测，可以使用```--isActive 3```，`3`是超时重复次数（使用这个参数之后也会重新获取status_code数据）:
+- 如果你想要进行web存活探测，可以使用```--checkActive 3```，`3`是超时重复次数（使用这个参数之后也会重新获取status_code数据）:
 
 ```shell
-$ fofa -s 3 --isActive port=80 
+$ fofa -s 3 --checkActive port=80 
 2024/08/26 18:52:00 query fofa of: port=80
 216.92.244.44,80,true
 104.21.31.50,80,true
 182.247.239.68,80,true
-$ fofa -s 3 --isActive 3 --format=json port=80
+$ fofa -s 3 --checkActive 3 --format=json port=80
 2024/08/26 18:53:33 query fofa of: port=80
 {"ip":"54.78.179.223","isActive":"false","port":"80"}
 {"ip":"18.155.202.65","isActive":"true","port":"80"}
 {"ip":"198.144.179.122","isActive":"true","port":"80"}
-$ fofa -s 3 --isActive 3 --format=xml port=80
+$ fofa -s 3 --checkActive 3 --format=xml port=80
 2024/08/26 18:54:38 query fofa of: port=80
 <result><ip>50.16.35.210</ip><port>80</port><isActive>true</isActive></result>
 <result><ip>104.21.77.62</ip><port>80</port><isActive>true</isActive></result>
