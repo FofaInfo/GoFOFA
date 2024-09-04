@@ -38,20 +38,20 @@ func TestCategory(t *testing.T) {
 	errYAMLFile.Close()
 
 	// 错误检测
-	err = Category("dsfhdksajfhsdkjfh", tmpCSVFile.Name())
+	err = Category("dsfhdksajfhsdkjfh", tmpCSVFile.Name(), "Category")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "error reading YAML file")
 
-	err = Category(tmpYAMLFile.Name(), "dsfhdksajfhsdkjfh")
+	err = Category(tmpYAMLFile.Name(), "dsfhdksajfhsdkjfh", "Category")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "error opening CSV file")
 
-	err = Category(errYAMLFile.Name(), tmpCSVFile.Name())
+	err = Category(errYAMLFile.Name(), tmpCSVFile.Name(), "Category")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "error creating output file")
 
 	// 正确检测
-	err = Category(tmpYAMLFile.Name(), tmpCSVFile.Name())
+	err = Category(tmpYAMLFile.Name(), tmpCSVFile.Name(), "Category")
 	assert.Nil(t, err)
 
 	// 验证新文件是否生成及内容是否正确

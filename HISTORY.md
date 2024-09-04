@@ -1,3 +1,7 @@
+## v0.2.24 add category command
+
+-   category use as: ```fofa category -i input.csv -c Category [-o category.csv]```
+
 ## v0.2.23 add headline in search command
 
 -   search of headline use as: ```fofa search -f host,port --headline -o output.csv port=80```

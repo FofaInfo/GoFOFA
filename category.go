@@ -29,7 +29,7 @@ func deDuplicates(arr []string) []string {
 	return result
 }
 
-func Category(configFile, inputFile string) error {
+func Category(configFile, inputFile, category string) error {
 	yamlReader := readformats.NewYAMLReader(configFile)
 	config, err := yamlReader.ReadFile()
 	if err != nil {
@@ -63,7 +63,7 @@ func Category(configFile, inputFile string) error {
 
 	// 根据分类标准打标签
 	for _, record := range data {
-		categories := deDuplicates(strings.Split(record["Category"], ","))
+		categories := deDuplicates(strings.Split(record[category], ","))
 		for _, category := range categories {
 			if fileTypeName, ok := config.Categories[category]; ok {
 				if writer, ok := writers[config.FileTypes[fileTypeName]]; ok {

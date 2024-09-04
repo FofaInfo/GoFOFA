@@ -14,6 +14,10 @@ const (
 	ConfigFileName = "config.yaml"
 )
 
+var (
+	category string // classify data by category field
+)
+
 var categoryCmd = &cli.Command{
 	Name:                   "category",
 	Usage:                  "classify data according to config",
@@ -25,6 +29,12 @@ var categoryCmd = &cli.Command{
 			Usage:       "input data file",
 			Destination: &inFile,
 		},
+		&cli.StringFlag{
+			Name:        "category",
+			Aliases:     []string{"c"},
+			Usage:       "classify data by category field",
+			Destination: &category,
+		},
 	},
 
 	Action: categoryAction,
@@ -34,6 +44,11 @@ func categoryAction(ctx *cli.Context) error {
 	// 检测无效参数
 	if len(ctx.Args().Slice()) > 0 {
 		return errors.New("invalid arguments")
+	}
+
+	// 检测category不为空
+	if len(category) == 0 {
+		return errors.New("no category specified")
 	}
 
 	// 查找当前目录下是否有config.yaml文件
@@ -75,7 +90,7 @@ func categoryAction(ctx *cli.Context) error {
 		return errors.New("no input file")
 	}
 
-	err = gofofa.Category(ConfigFileName, inFile)
+	err = gofofa.Category(ConfigFileName, inFile, category)
 	if err != nil {
 		return fmt.Errorf("error category: %s", err.Error())
 	}

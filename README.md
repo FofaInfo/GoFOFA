@@ -539,6 +539,36 @@ $ fofa dedup -o data.csv -d ip -o dedup.csv
 $ fofa dedup -o data.csv -d ip,host,domain -o dedup.csv
 ```
 
+### Category
+
+> 分类
+
+- Category支持对一个csv文件进行分类，通过config.yaml配置文件来进行分类（配置文件必须在当前目录下），配置文件如下格式:
+
+```shell
+categories:
+  数据证书: "hard"
+  其他支撑系统: "soft"
+  电子邮件系统: "buss"
+  其他企业应用: "buss"
+
+file_types:
+  soft: "soft.csv"
+  hard: "hard.csv"
+  buss: "buss.csv"
+```
+- 可以使用`-category`或`-c`设置需要分类的字段（只支持根据单个字段分类），`-output`不设置会默认生成`category.csv`文件:
+
+```shell
+$ fofa category -input input.csv -category Category [-output category.csv]
+```
+
+或者更简洁一些:
+
+```shell
+$ fofa category -i input.csv -c Category [-o category.csv]
+```
+
 ### Utils
 
 > 其他
