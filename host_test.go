@@ -153,6 +153,46 @@ func TestClient_HostSearch(t *testing.T) {
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, 986, len(res))
+
+	// 域名泛解析保留
+	res, err = cli.HostSearch("domain=huashunxinan.net", 500, []string{"link"}, SearchOptions{})
+	assert.Nil(t, err)
+	assert.Equal(t, 100, len(res))
+	res, err = cli.HostSearch("domain=huashunxinan.net", 500, []string{"link"}, SearchOptions{
+		DeWildcard: 3,
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, 11, len(res))
+
+	// subdomain去重
+	res, err = cli.HostSearch("domain=huashunxinan.net", 500, []string{"link"}, SearchOptions{})
+	assert.Nil(t, err)
+	assert.Equal(t, 100, len(res))
+	res, err = cli.HostSearch("domain=huashunxinan.net", 500, []string{"link"}, SearchOptions{
+		DedupHost: true,
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, 99, len(res))
+
+	// checkActive探活
+	res, err = cli.HostSearch("ip=127.0.0.1", 1, []string{"link"}, SearchOptions{})
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(res[0]))
+	res, err = cli.HostSearch("ip=127.0.0.1", 1, []string{"link"}, SearchOptions{
+		CheckActive: 3,
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(res[0])) // 多一个isActive字段
+
+	// filter过滤器
+	res, err = cli.HostSearch("domain=huashunxinan.net", 500, []string{"ip", "host", "status_code"}, SearchOptions{})
+	assert.Nil(t, err)
+	assert.Equal(t, 100, len(res))
+	res, err = cli.HostSearch("domain=huashunxinan.net", 500, []string{"ip", "host", "status_code"}, SearchOptions{
+		Filter: "status_code=='200'",
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, 57, len(res))
 }
 
 func TestClient_HostSearch_UniqIP(t *testing.T) {

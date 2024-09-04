@@ -260,7 +260,7 @@ $ fofa -s 3 --checkActive 3 --format=xml port=80
 <result><ip>189.193.236.170</ip><port>80</port><isActive>false</isActive></result>
 ```
 
-- 如果你想要减少泛域名数量，可以使用```deWildcard```设置保留泛域名数量，```-f```可以支持其他字段选用link做为演示:
+- 如果你想要减少泛域名数量，可以使用```--deWildcard```设置保留泛域名数量，```-f```可以支持其他字段选用link做为演示（该参数只有企业账号以上可用）:
 
 ```shell
 $ fofa -s 3 -f link domain=huashunxinan.net
@@ -275,7 +275,7 @@ https://fwtn2k7oigaiyla.huashunxinan.net
 http://huashunxinan.net
 ```
 
-- ```dedupHost```，在fofa中subdomain代表网页数据，service代表协议数据，如果host相同，优先保留subdomain数据:
+- ```--dedupHost```，在fofa中subdomain代表网页数据，service代表协议数据，如果host相同，优先保留subdomain数据:
 
 ```shell
 $ fofa -s 3 -f host,type "ip=106.75.95.206"

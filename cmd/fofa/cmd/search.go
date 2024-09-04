@@ -148,7 +148,7 @@ var searchCmd = &cli.Command{
 		&cli.BoolFlag{
 			Name:        "dedupHost",
 			Value:       false,
-			Usage:       "deduplicate by host",
+			Usage:       "deduplicate by host, just ",
 			Destination: &dedupHost,
 		},
 		&cli.BoolFlag{
@@ -244,8 +244,8 @@ func SearchAction(ctx *cli.Context) error {
 	}
 
 	// headline只允许在format=csv的情况下使用
-	if headline && format != "csv" {
-		return errors.New("headline param is only allowed if format is csv")
+	if headline && format != "csv" && len(outFile) > 0 {
+		return errors.New("headline param is only allowed if format is csv, outFile not be empty")
 	}
 
 	// deWildcard不能为0
@@ -294,7 +294,7 @@ func SearchAction(ctx *cli.Context) error {
 		}
 	}
 
-	if headline && format == "csv" {
+	if headline && format == "csv" && len(outFile) > 0 {
 		// 将首字母大写
 		for i, v := range headFields {
 			if v == "ip" {
