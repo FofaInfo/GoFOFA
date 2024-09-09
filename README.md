@@ -547,26 +547,29 @@ $ fofa dedup -o data.csv -d ip,host,domain -o dedup.csv
 
 ```shell
 categories:
-  数据证书: "hard"
-  其他支撑系统: "soft"
-  电子邮件系统: "buss"
-  其他企业应用: "buss"
+  - name: "hard"
+    filters:
+      - "contain(category, '数据证书')"
 
-file_types:
-  soft: "soft.csv"
-  hard: "hard.csv"
-  buss: "buss.csv"
+  - name: "soft"
+    filters:
+      - "category == '其他支撑系统'"
+
+  - name: "buss"
+    filters:
+      - "category == '电子邮件系统' || contain(category, '其他企业应用')"
+
 ```
-- 可以使用`-category`或`-c`设置需要分类的字段（只支持根据单个字段分类），`-output`不设置会默认生成`category.csv`文件:
+- 可以在config.yaml文件中设置好过滤规则`filter`，内置了一个`contain`方法，意思是某一个字段是否含有什么值`-output`不设置会默认生成`category.csv`文件:
 
 ```shell
-$ fofa category -input input.csv -category Category [-output category.csv]
+$ fofa category -input input.csv [-output category.csv -rFile relation.csv -sField source -tField target1,target2...]
 ```
 
 或者更简洁一些:
 
 ```shell
-$ fofa category -i input.csv -c Category [-o category.csv]
+$ fofa category -i input.csv [-o category.csv -rFile relation.csv -sField source -tField target1,target2...]
 ```
 
 ### Utils

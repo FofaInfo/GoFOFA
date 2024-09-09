@@ -15,9 +15,13 @@ type YAMLReader struct {
 	Filename string
 }
 
+type Category struct {
+	Name    string   `yaml:"name"`
+	Filters []string `yaml:"filters"`
+}
+
 type Config struct {
-	Categories map[string]string `yaml:"categories"`
-	FileTypes  map[string]string `yaml:"file_types"`
+	Categories []Category `yaml:"categories"`
 }
 
 func NewYAMLReader(filename string) *YAMLReader {

@@ -15,7 +15,10 @@ const (
 )
 
 var (
-	category string // classify data by category field
+	unique bool   // is the classification unique
+	rFile  string // relation file
+	sField string // source field
+	tField string // target field
 )
 
 var categoryCmd = &cli.Command{
@@ -29,11 +32,26 @@ var categoryCmd = &cli.Command{
 			Usage:       "input data file",
 			Destination: &inFile,
 		},
+		&cli.BoolFlag{
+			Name:        "unique",
+			Value:       false,
+			Usage:       "is the classification unique",
+			Destination: &unique,
+		},
 		&cli.StringFlag{
-			Name:        "category",
-			Aliases:     []string{"c"},
-			Usage:       "classify data by category field",
-			Destination: &category,
+			Name:        "rFile",
+			Usage:       "relation file",
+			Destination: &rFile,
+		},
+		&cli.StringFlag{
+			Name:        "sField",
+			Usage:       "source field",
+			Destination: &sField,
+		},
+		&cli.StringFlag{
+			Name:        "tField",
+			Usage:       "target field",
+			Destination: &tField,
 		},
 	},
 
@@ -44,11 +62,6 @@ func categoryAction(ctx *cli.Context) error {
 	// 检测无效参数
 	if len(ctx.Args().Slice()) > 0 {
 		return errors.New("invalid arguments")
-	}
-
-	// 检测category不为空
-	if len(category) == 0 {
-		return errors.New("no category specified")
 	}
 
 	// 查找当前目录下是否有config.yaml文件
@@ -79,18 +92,27 @@ func categoryAction(ctx *cli.Context) error {
 	if len(config.Categories) == 0 {
 		return errors.New("categories not be empty")
 	}
-	for _, fileType := range config.FileTypes {
-		if filepath.Ext(fileType) != ".csv" {
-			return errors.New("file type only .csv supported")
-		}
-	}
 
 	// 检测input是否为空
 	if len(inFile) == 0 {
 		return errors.New("no input file")
 	}
 
-	err = gofofa.Category(ConfigFileName, inFile, category)
+	// 检测关联是否合规
+	if len(rFile) > 0 && (len(sField) == 0 || len(tField) == 0) {
+		return errors.New("sField and tField can not be empty")
+	}
+
+	if len(rFile) == 0 && (len(sField) > 0 || len(tField) > 0) {
+		return errors.New("rFile can not be empty")
+	}
+
+	_, err = gofofa.Category(ConfigFileName, inFile, gofofa.CategoryOptions{
+		Unique:       unique,
+		RelationFile: rFile,
+		SourceField:  sField,
+		TargetField:  tField,
+	})
 	if err != nil {
 		return fmt.Errorf("error category: %s", err.Error())
 	}

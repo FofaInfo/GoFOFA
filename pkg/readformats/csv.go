@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"strings"
 )
 
 type CSVReader struct {
@@ -15,7 +16,14 @@ func NewCSVReader(filename string) *CSVReader {
 	return &CSVReader{Filename: filename}
 }
 
-func (c *CSVReader) ReadFile() ([]map[string]string, []string, error) {
+func toLowerSlice(strs []string) []string {
+	for i, s := range strs {
+		strs[i] = strings.ToLower(s)
+	}
+	return strs
+}
+
+func (c *CSVReader) ReadFile() ([]map[string]interface{}, []string, error) {
 	file, err := os.Open(c.Filename)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to open file: %v", err)
@@ -24,6 +32,7 @@ func (c *CSVReader) ReadFile() ([]map[string]string, []string, error) {
 
 	reader := csv.NewReader(file)
 	header, err := reader.Read()
+	header = toLowerSlice(header)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to read header: %v", err)
 	}
@@ -41,7 +50,7 @@ func (c *CSVReader) ReadFile() ([]map[string]string, []string, error) {
 		keepIndices[i] = col
 	}
 
-	var result []map[string]string
+	var result []map[string]interface{}
 	for {
 		row, err := reader.Read()
 		if err != nil {
@@ -51,7 +60,7 @@ func (c *CSVReader) ReadFile() ([]map[string]string, []string, error) {
 			return nil, nil, fmt.Errorf("failed to read row: %v", err)
 		}
 
-		rowData := make(map[string]string)
+		rowData := make(map[string]interface{})
 		for i, value := range row {
 			if col, ok := keepIndices[i]; ok {
 				rowData[col] = value

@@ -1,13 +1,22 @@
 package gofofa
 
 import (
+	"fmt"
 	"github.com/LubyRuffy/gofofa/pkg/readformats"
 	"github.com/stretchr/testify/assert"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
 func TestCategory(t *testing.T) {
+	// 创建一个临时目录以便测试
+	tempDir := t.TempDir()
+	originalDir, _ := os.Getwd()
+
+	os.Chdir(tempDir)
+	defer os.Chdir(originalDir)
+
 	// 初始CSV内容
 	tmpCSVFile, err := os.CreateTemp("", "testFile-*.csv")
 	assert.Nil(t, err)
@@ -23,7 +32,7 @@ func TestCategory(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(tmpYAMLFile.Name())
 
-	yamlContent := "categories:\n  数据证书: \"hard\"\n  其他支撑系统: \"soft\"\n  电子邮件系统: \"buss\"\n  其他企业应用: \"buss\"\n\nfile_types:\n  soft: \"soft.csv\"\n  hard: \"hard.csv\"\n  buss: \"buss.csv\""
+	yamlContent := "categories:\n  - name: \"hard\"\n    filters:\n      - \"contain(category, '数据证书')\"\n\n  - name: \"soft\"\n    filters:\n      - \"contain(category, '其他支撑系统')\"\n\n  - name: \"buss\"\n    filters:\n      - \"contain(category, '电子邮件系统')\"\n      - \"contain(category, '其他企业应用')\"\n"
 	_, err = tmpYAMLFile.WriteString(yamlContent)
 	assert.Nil(t, err)
 	tmpYAMLFile.Close()
@@ -32,63 +41,60 @@ func TestCategory(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(errYAMLFile.Name())
 
-	errYAMLContent := "categories:\n  数据证书: \"hard\"\n  其他支撑系统: \"soft\"\n  电子邮件系统: \"buss\"\n  其他企业应用: \"buss\"\n\nfile_types:\n  soft: \"invalid|soft.csv\"\n  hard: \"hard.csv\"\n  buss: \"buss.csv\""
+	errYAMLContent := "categories:\n  - name: \"hard\"\n    filters:\n      - \"contain(category, '数据证书')\"\n\n  - name: \"invalid|soft\"\n    filters:\n      - \"contain(category, '其他支撑系统')\"\n\n  - name: \"buss\"\n    filters:\n      - \"contain(category, '电子邮件系统')\"\n      - \"contain(category, '其他企业应用')\"\n"
 	_, err = errYAMLFile.WriteString(errYAMLContent)
 	assert.Nil(t, err)
 	errYAMLFile.Close()
 
 	// 错误检测
-	err = Category("dsfhdksajfhsdkjfh", tmpCSVFile.Name(), "Category")
+	_, err = Category("dsfhdksajfhsdkjfh", tmpCSVFile.Name(), CategoryOptions{})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "error reading YAML file")
 
-	err = Category(tmpYAMLFile.Name(), "dsfhdksajfhsdkjfh", "Category")
+	_, err = Category(tmpYAMLFile.Name(), "dsfhdksajfhsdkjfh", CategoryOptions{})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "error opening CSV file")
 
-	err = Category(errYAMLFile.Name(), tmpCSVFile.Name(), "Category")
+	_, err = Category(errYAMLFile.Name(), tmpCSVFile.Name(), CategoryOptions{})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "error creating output file")
 
 	// 正确检测
-	err = Category(tmpYAMLFile.Name(), tmpCSVFile.Name(), "Category")
+	resultDir, err := Category(tmpYAMLFile.Name(), tmpCSVFile.Name(), CategoryOptions{})
 	assert.Nil(t, err)
+
+	// 验证 result 文件夹存在
+	resultPath := filepath.Join(tempDir, "result")
+	assert.DirExists(t, resultPath, "result directory not exist")
+
+	// 验证时间文件夹是否存在
+	assert.DirExists(t, resultDir, resultDir+" directory not exist")
 
 	// 验证新文件是否生成及内容是否正确
 	newFilenames := []string{"buss.csv", "soft.csv", "hard.csv"}
+
 	for _, newFilename := range newFilenames {
-		if _, err := os.Stat(newFilename); os.IsNotExist(err) {
+		newFilename = filepath.Join(resultDir, newFilename)
+		assert.FileExists(t, newFilename, newFilename+" not exist")
+		// 验证新文件内容
+		csvReader := readformats.NewCSVReader(newFilename)
+		actualContent, _, err := csvReader.ReadFile()
+		if err != nil {
+			t.Fatalf("Failed to read processed file: %v", err)
+		}
+
+		switch newFilename {
+		case filepath.Join(resultDir, "buss.csv"):
+			assert.Equal(t, 3, len(actualContent), "Processed file content mismatch: expected length 3, got "+fmt.Sprint(len(actualContent)))
+			continue
+		case filepath.Join(resultDir, "soft.csv"):
+			assert.Equal(t, 1, len(actualContent), "Processed file content mismatch: expected length 1, got "+fmt.Sprint(len(actualContent)))
+			continue
+		case filepath.Join(resultDir, "hard.csv"):
+			assert.Equal(t, 2, len(actualContent), "Processed file content mismatch: expected length 2, got "+fmt.Sprint(len(actualContent)))
+			continue
+		default:
 			t.Errorf("Processed file was not created: %s", newFilename)
-		} else {
-			defer os.Remove(newFilename) // 测试结束后删除新文件
-
-			// 验证新文件内容
-			csvReader := readformats.NewCSVReader(newFilename)
-			actualContent, _, err := csvReader.ReadFile()
-			if err != nil {
-				t.Fatalf("Failed to read processed file: %v", err)
-			}
-
-			switch newFilename {
-			case "buss.csv":
-				if len(actualContent) != 3 {
-					t.Errorf("Processed file content mismatch: expected length 3, got %d", len(actualContent))
-				}
-				continue
-			case "soft.csv":
-				if len(actualContent) != 1 {
-					t.Errorf("Processed file content mismatch: expected 1, got %d", len(actualContent))
-				}
-				continue
-			case "hard.csv":
-				if len(actualContent) != 2 {
-					t.Errorf("Processed file content mismatch: expected 2, got %d", len(actualContent))
-				}
-				continue
-			default:
-				t.Errorf("Processed file was not created: %s", newFilename)
-			}
 		}
 	}
-
 }

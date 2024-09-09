@@ -220,6 +220,29 @@ func pipelineProcess(writeQuery func(query string) error, in io.Reader) {
 	wg.Wait()
 }
 
+func splitIPs(queries []string, num int) [][]string {
+	var result [][]string
+	for i := 0; i < len(queries); i += num {
+		end := i + num
+		if end > len(queries) {
+			end = len(queries)
+		}
+		result = append(result, queries[i:end])
+	}
+	return result
+}
+
+func constructQuery(ips []string) string {
+	var queryBuilder strings.Builder
+	for i, ip := range ips {
+		if i > 0 {
+			queryBuilder.WriteString(" || ")
+		}
+		queryBuilder.WriteString(fmt.Sprintf("ip=%s", ip))
+	}
+	return `(` + queryBuilder.String() + `) && (is_honeypot=true || is_honeypot=false || is_fraud=true || is_fraud=false)`
+}
+
 // SearchAction search action
 func SearchAction(ctx *cli.Context) error {
 	// valid same config
