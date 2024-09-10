@@ -24,12 +24,25 @@ type CategoryOptions struct {
 	TargetField  string // target field
 }
 
-func contains(value, substring string) bool {
-	return strings.Contains(value, substring)
-}
+func evaluateExpressions(filters []string, data map[string]interface{}) (bool, error) {
+	// 处理数据
+	env := make(map[string]interface{})
+	for i, value := range data {
+		//v := fmt.Sprintf("%v", value)
+		//if strings.Contains(v, ",") {
+		//	env[i] = strings.Split(v, ",")
+		//} else {
+		//	if intValue, err := strconv.Atoi(v); err == nil {
+		//		env[i] = intValue
+		//	} else {
+		//		env[i] = value
+		//	}
+		//}
+		env[i] = value
+	}
 
-func evaluateExpressions(filters []string, env map[string]interface{}) (bool, error) {
-	env["contain"] = contains
+	// 添加过滤器内置方法
+	env["CONTAIN"] = strings.Contains
 
 	for _, filter := range filters {
 		program, err := expr.Compile(filter, expr.Env(env))
@@ -156,6 +169,8 @@ func Category(configFile, inputFile string, options ...CategoryOptions) (string,
 		writer.Write(header)
 	}
 
+	counts := make(map[string]int)
+
 	// 根据分类标准打标签
 	var match bool
 	for _, recordMap := range data {
@@ -176,7 +191,7 @@ func Category(configFile, inputFile string, options ...CategoryOptions) (string,
 					return "", fmt.Errorf("error writing record: %v", err)
 				}
 				// 匹配成功，写入分类文件
-				fmt.Println("[-] Record matches category:", cate.Name)
+				counts[cate.Name]++
 				if unique {
 					break
 				}
@@ -184,5 +199,10 @@ func Category(configFile, inputFile string, options ...CategoryOptions) (string,
 		}
 
 	}
+
+	for _, cate := range config.Categories {
+		fmt.Println("[-] Matches category:", cate.Name, ", Length:", counts[cate.Name])
+	}
+
 	return resultDir, nil
 }
