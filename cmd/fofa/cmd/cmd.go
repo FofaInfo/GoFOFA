@@ -30,6 +30,7 @@ var GlobalCommands = []*cli.Command{
 	activeCmd,
 	dedupCmd,
 	categoryCmd,
+	browserCmd,
 }
 
 // IsValidCommand valid command name
