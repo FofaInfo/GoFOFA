@@ -148,7 +148,7 @@ var searchCmd = &cli.Command{
 		&cli.BoolFlag{
 			Name:        "dedupHost",
 			Value:       false,
-			Usage:       "deduplicate by host, just ",
+			Usage:       "deduplicate by host",
 			Destination: &dedupHost,
 		},
 		&cli.BoolFlag{
