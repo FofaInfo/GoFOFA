@@ -3,27 +3,30 @@ package gofofa
 import (
 	"errors"
 	"git.gobies.org/goby/httpclient"
+	"log"
 	"net"
 	"strconv"
 )
 
-type Result struct {
+type HttpResponse struct {
 	IsActive   bool
 	StatusCode string
 }
 
-func DoHttpCheck(rowURL string, retry int) Result {
+func DoHttpCheck(rowURL string, retry int) HttpResponse {
 	fURL := httpclient.NewFixUrl(rowURL)
-	if fURL == nil {
-		return Result{false, "0"}
-	}
 	cfg := httpclient.NewGetRequestConfig("/")
+	cfg.VerifyTls = false
+	cfg.Timeout = 30
+	cfg.FollowRedirect = false
 	resp, err := retryDoHttpRequest(fURL, cfg, retry)
+	log.Println("finish:", rowURL)
 	if err != nil {
-		return Result{false, "0"}
+		log.Println("finish:", rowURL, "error:", err)
+		return HttpResponse{false, "0"}
 	}
 
-	return Result{true, strconv.Itoa(resp.StatusCode)}
+	return HttpResponse{true, strconv.Itoa(resp.StatusCode)}
 }
 
 func retryDoHttpRequest(hostinfo *httpclient.FixUrl, req *httpclient.RequestConfig, retry int) (*httpclient.HttpResponse, error) {

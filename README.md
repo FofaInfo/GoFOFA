@@ -260,7 +260,7 @@ $ fofa -s 3 --checkActive 3 --format=xml port=80
 <result><ip>189.193.236.170</ip><port>80</port><isActive>false</isActive></result>
 ```
 
-- 如果你想要减少泛域名数量，可以使用```deWildcard```设置保留泛域名数量，```-f```可以支持其他字段选用link做为演示:
+- 如果你想要减少泛域名数量，可以使用```--deWildcard```设置保留泛域名数量，```-f```可以支持其他字段选用link做为演示（该参数只有企业账号以上可用）:
 
 ```shell
 $ fofa -s 3 -f link domain=huashunxinan.net
@@ -275,7 +275,7 @@ https://fwtn2k7oigaiyla.huashunxinan.net
 http://huashunxinan.net
 ```
 
-- ```dedupHost```，在fofa中subdomain代表网页数据，service代表协议数据，如果host相同，优先保留subdomain数据:
+- ```--dedupHost```，在fofa中subdomain代表网页数据，service代表协议数据，如果host相同，优先保留subdomain数据:
 
 ```shell
 $ fofa -s 3 -f host,type "ip=106.75.95.206"
@@ -537,6 +537,39 @@ $ fofa dedup -output data.csv -dedup ip,host,domain -output dedup.csv
 ```shell
 $ fofa dedup -o data.csv -d ip -o dedup.csv
 $ fofa dedup -o data.csv -d ip,host,domain -o dedup.csv
+```
+
+### Category
+
+> 分类
+
+- Category支持对一个csv文件进行分类，通过config.yaml配置文件来进行分类（配置文件必须在当前目录下），配置文件如下格式:
+
+```shell
+categories:
+  - name: "hard"
+    filters:
+      - "contain(category, '数据证书')"
+
+  - name: "soft"
+    filters:
+      - "category == '其他支撑系统'"
+
+  - name: "buss"
+    filters:
+      - "category == '电子邮件系统' || contain(category, '其他企业应用')"
+
+```
+- 可以在config.yaml文件中设置好过滤规则`filter`，内置了一个`contain`方法，意思是某一个字段是否含有什么值`-output`不设置会默认生成`category.csv`文件:
+
+```shell
+$ fofa category -input input.csv [-output category.csv]
+```
+
+或者更简洁一些:
+
+```shell
+$ fofa category -i input.csv [-o category.csv]
 ```
 
 ### Utils

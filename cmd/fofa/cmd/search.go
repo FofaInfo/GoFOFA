@@ -220,6 +220,29 @@ func pipelineProcess(writeQuery func(query string) error, in io.Reader) {
 	wg.Wait()
 }
 
+func splitIPs(queries []string, num int) [][]string {
+	var result [][]string
+	for i := 0; i < len(queries); i += num {
+		end := i + num
+		if end > len(queries) {
+			end = len(queries)
+		}
+		result = append(result, queries[i:end])
+	}
+	return result
+}
+
+func constructQuery(ips []string) string {
+	var queryBuilder strings.Builder
+	for i, ip := range ips {
+		if i > 0 {
+			queryBuilder.WriteString(" || ")
+		}
+		queryBuilder.WriteString(fmt.Sprintf("ip=%s", ip))
+	}
+	return `(` + queryBuilder.String() + `) && (is_honeypot=true || is_honeypot=false || is_fraud=true || is_fraud=false)`
+}
+
 // SearchAction search action
 func SearchAction(ctx *cli.Context) error {
 	// valid same config
@@ -244,8 +267,8 @@ func SearchAction(ctx *cli.Context) error {
 	}
 
 	// headline只允许在format=csv的情况下使用
-	if headline && format != "csv" {
-		return errors.New("headline param is only allowed if format is csv")
+	if headline && format != "csv" && len(outFile) > 0 {
+		return errors.New("headline param is only allowed if format is csv, outFile not be empty")
 	}
 
 	// deWildcard不能为0
@@ -294,7 +317,7 @@ func SearchAction(ctx *cli.Context) error {
 		}
 	}
 
-	if headline && format == "csv" {
+	if headline && format == "csv" && len(outFile) > 0 {
 		// 将首字母大写
 		for i, v := range headFields {
 			if v == "ip" {

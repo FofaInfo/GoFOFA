@@ -9,28 +9,27 @@ func TestCheckActive(t *testing.T) {
 	tests := []struct {
 		name          string
 		fixedHostInfo string
-		want          Result
+		want          HttpResponse
 	}{
-		// TODO: Add test cases.
 		{
 			name:          "Success base",
 			fixedHostInfo: "http://www.baidu.com",
-			want:          Result{true, "200"},
+			want:          HttpResponse{IsActive: true, StatusCode: "302"},
 		},
 		{
 			name:          "Fail base",
 			fixedHostInfo: "http://www.sadhdkashdaskjdhsajkhkjhdaskhd.com",
-			want:          Result{false, "0"},
+			want:          HttpResponse{IsActive: false, StatusCode: "0"},
 		},
 		{
 			name:          "IP base",
 			fixedHostInfo: "123.58.224.8",
-			want:          Result{true, "200"},
+			want:          HttpResponse{IsActive: true, StatusCode: "200"},
 		},
 		{
 			name:          "Domain base",
 			fixedHostInfo: "baidu.com",
-			want:          Result{true, "200"},
+			want:          HttpResponse{IsActive: true, StatusCode: "302"},
 		},
 	}
 	for _, tt := range tests {
@@ -38,4 +37,5 @@ func TestCheckActive(t *testing.T) {
 			assert.Equalf(t, tt.want, DoHttpCheck(tt.fixedHostInfo, 3), "CheckActive(%v)", tt.fixedHostInfo)
 		})
 	}
+
 }

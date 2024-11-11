@@ -184,18 +184,18 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 	var (
 		full        bool
 		uniqByIP    bool
-		isActive    int
-		dedupCname  int
-		isSubDomain bool
+		checkActive int
+		deWildcard  int
+		dedupHost   bool
 		filter      string
 	)
 	if len(options) > 0 {
 		full = options[0].Full
 		uniqByIP = options[0].UniqByIP
-		isActive = options[0].CheckActive
-		dedupCname = options[0].DeWildcard
+		checkActive = options[0].CheckActive
+		deWildcard = options[0].DeWildcard
 		filter = options[0].Filter
-		isSubDomain = options[0].DedupHost
+		dedupHost = options[0].DedupHost
 	}
 
 	freeSize := c.freeSize()
@@ -248,15 +248,15 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 	var activeSlice []string
 	// 确认fields包含link
 	var linkIndex, codeIndex = -1, -1
-	if isActive > 0 {
+	if checkActive > 0 {
 		linkIndex, fields = getParamIndexThenAdd(fields, "link")
 		codeIndex, fields = getParamIndexThenAdd(fields, "status_code")
 	}
 
-	dedupCnameMap := make(map[string]int)
+	deWildcardMap := make(map[string]int)
 	// 确认fields包含ip、port、domain、title、fid
 	var portIndex, domainIndex, titleIndex, fidIndex int = -1, -1, -1, -1
-	if dedupCname > 0 {
+	if deWildcard > 0 {
 		ipIndex, fields = getParamIndexThenAdd(fields, "ip")
 		portIndex, fields = getParamIndexThenAdd(fields, "port")
 		domainIndex, fields = getParamIndexThenAdd(fields, "domain")
@@ -280,10 +280,10 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 		}
 	}
 
-	isSubDomainMap := make(map[string][]string)
+	dedupHostMap := make(map[string][]string)
 	// 确认fields包含type
 	typeIndex := -1
-	if isSubDomain {
+	if dedupHost {
 		typeIndex, fields = getParamIndexThenAdd(fields, "type")
 		linkIndex, fields = getParamIndexThenAdd(fields, "link")
 	}
@@ -338,13 +338,13 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 						}
 						uniqIPMap[newSlice[ipIndex]] = true
 					}
-					if dedupCname > 0 {
+					if deWildcard > 0 {
 						key := fmt.Sprintf("%s:%s:%s:%s:%s", newSlice[ipIndex], newSlice[portIndex],
 							newSlice[domainIndex], newSlice[titleIndex], newSlice[fidIndex])
-						if _, ok := dedupCnameMap[key]; ok && dedupCnameMap[key] > 3 {
+						if _, ok := deWildcardMap[key]; ok && deWildcardMap[key] > 3 {
 							continue
 						}
-						dedupCnameMap[key]++
+						deWildcardMap[key]++
 					}
 					if len(filter) > 0 {
 						env := make(map[string]interface{})
@@ -366,8 +366,8 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 							continue
 						}
 					}
-					if isActive > 0 {
-						resp := DoHttpCheck(newSlice[linkIndex], isActive)
+					if checkActive > 0 {
+						resp := DoHttpCheck(newSlice[linkIndex], checkActive)
 						activeSlice = append(activeSlice, fmt.Sprintf("%t", resp.IsActive))
 						newSlice[codeIndex] = resp.StatusCode
 					}
@@ -381,8 +381,8 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 						}
 						uniqIPMap[vStr] = true
 					}
-					if isActive > 0 && linkIndex == 0 {
-						resp := DoHttpCheck(vStr, isActive)
+					if checkActive > 0 && linkIndex == 0 {
+						resp := DoHttpCheck(vStr, checkActive)
 						activeSlice = append(activeSlice, fmt.Sprintf("%t", resp.IsActive))
 					}
 					results = append(results, newSlice)
@@ -411,10 +411,11 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 		page++ // 翻页
 	}
 
-	if isSubDomain {
+	// subdomain去重
+	if dedupHost {
 		var result [][]string
 		for _, row := range res {
-			exist, found := isSubDomainMap[row[linkIndex]]
+			exist, found := dedupHostMap[row[linkIndex]]
 			if found {
 				if row[linkIndex] == "" {
 					result = append(result, row)
@@ -424,10 +425,10 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 					continue
 				}
 			}
-			isSubDomainMap[row[linkIndex]] = row
+			dedupHostMap[row[linkIndex]] = row
 		}
 
-		for _, v := range isSubDomainMap {
+		for _, v := range dedupHostMap {
 			result = append(result, v)
 		}
 
@@ -436,7 +437,7 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 
 	// 后处理
 	res = c.postProcess(res, fields, hostIndex, protocolIndex, rawFieldSize, options...)
-	if isActive > 0 {
+	if checkActive > 0 {
 		for index := range res {
 			res[index] = append(res[index], activeSlice[index])
 		}
