@@ -15,10 +15,7 @@ const (
 )
 
 var (
-	unique bool   // is the classification unique
-	rFile  string // relation file
-	sField string // source field
-	tField string // target field
+	unique bool // is the classification unique
 )
 
 var categoryCmd = &cli.Command{
@@ -37,21 +34,6 @@ var categoryCmd = &cli.Command{
 			Value:       false,
 			Usage:       "is the classification unique",
 			Destination: &unique,
-		},
-		&cli.StringFlag{
-			Name:        "rFile",
-			Usage:       "relation file",
-			Destination: &rFile,
-		},
-		&cli.StringFlag{
-			Name:        "sField",
-			Usage:       "source field",
-			Destination: &sField,
-		},
-		&cli.StringFlag{
-			Name:        "tField",
-			Usage:       "target field",
-			Destination: &tField,
 		},
 	},
 
@@ -98,23 +80,11 @@ func categoryAction(ctx *cli.Context) error {
 		return errors.New("no input file")
 	}
 
-	// 检测关联是否合规
-	if len(rFile) > 0 && (len(sField) == 0 || len(tField) == 0) {
-		return errors.New("sField and tField can not be empty")
-	}
-
-	if len(rFile) == 0 && (len(sField) > 0 || len(tField) > 0) {
-		return errors.New("rFile can not be empty")
-	}
-
 	_, err = gofofa.Category(ConfigFileName, inFile, gofofa.CategoryOptions{
-		Unique:       unique,
-		RelationFile: rFile,
-		SourceField:  sField,
-		TargetField:  tField,
+		Unique: unique,
 	})
 	if err != nil {
-		return fmt.Errorf("error category: %s", err.Error())
+		return errors.New("category error: " + err.Error())
 	}
 
 	return nil

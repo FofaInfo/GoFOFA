@@ -22,7 +22,7 @@ func TestCategory(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(tmpCSVFile.Name())
 
-	csvContent := "Host,Category\nimap.jaas.ac.cn:110,\"电子邮件系统,,其他企业应用\"\npop.jaas.ac.cn:110,电子邮件系统\nimap.mail.suda.edu.cn:995,\"数据证书,电子邮件系统\"\nntp.suda.edu.cn:123,其他支撑系统\nsmtp.jaas.ac.cn:465,数据证书"
+	csvContent := "host,category\nimap.jaas.ac.cn:110,\"电子邮件系统,,其他企业应用\"\npop.jaas.ac.cn:110,电子邮件系统\nimap.mail.suda.edu.cn:995,\"数据证书,电子邮件系统\"\nntp.suda.edu.cn:123,其他支撑系统\nsmtp.jaas.ac.cn:465,数据证书"
 	_, err = tmpCSVFile.WriteString(csvContent)
 	assert.Nil(t, err)
 	tmpCSVFile.Close()
@@ -32,7 +32,7 @@ func TestCategory(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(tmpYAMLFile.Name())
 
-	yamlContent := "categories:\n  - name: \"hard\"\n    filters:\n      - \"contain(category, '数据证书')\"\n\n  - name: \"soft\"\n    filters:\n      - \"contain(category, '其他支撑系统')\"\n\n  - name: \"buss\"\n    filters:\n      - \"contain(category, '电子邮件系统')\"\n      - \"contain(category, '其他企业应用')\"\n"
+	yamlContent := "categories:\n  - name: \"hard\"\n    filters:\n      - \"CONTAIN(category, '数据证书')\"\n\n  - name: \"soft\"\n    filters:\n      - \"CONTAIN(category, '其他支撑系统')\"\n\n  - name: \"buss\"\n    filters:\n      - \"CONTAIN(category, '电子邮件系统')\"\n      - \"CONTAIN(category, '其他企业应用')\"\n"
 	_, err = tmpYAMLFile.WriteString(yamlContent)
 	assert.Nil(t, err)
 	tmpYAMLFile.Close()
@@ -41,7 +41,7 @@ func TestCategory(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(errYAMLFile.Name())
 
-	errYAMLContent := "categories:\n  - name: \"hard\"\n    filters:\n      - \"contain(category, '数据证书')\"\n\n  - name: \"invalid|soft\"\n    filters:\n      - \"contain(category, '其他支撑系统')\"\n\n  - name: \"buss\"\n    filters:\n      - \"contain(category, '电子邮件系统')\"\n      - \"contain(category, '其他企业应用')\"\n"
+	errYAMLContent := "categories:\n  - name: \"hard\"\n    filters:\n      - \"CONTAIN(category, '数据证书')\"\n\n  - name: \"invalid|soft\"\n    filters:\n      - \"CONTAIN(category, '其他支撑系统')\"\n\n  - name: \"buss\"\n    filters:\n      - \"CONTAIN(category, '电子邮件系统')\"\n      - \"CONTAIN(category, '其他企业应用')\"\n"
 	_, err = errYAMLFile.WriteString(errYAMLContent)
 	assert.Nil(t, err)
 	errYAMLFile.Close()
@@ -77,8 +77,7 @@ func TestCategory(t *testing.T) {
 		newFilename = filepath.Join(resultDir, newFilename)
 		assert.FileExists(t, newFilename, newFilename+" not exist")
 		// 验证新文件内容
-		csvReader := readformats.NewCSVReader(newFilename)
-		actualContent, _, err := csvReader.ReadFile()
+		actualContent, _, err := readformats.LoadCSVStreamed(newFilename)
 		if err != nil {
 			t.Fatalf("Failed to read processed file: %v", err)
 		}

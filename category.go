@@ -24,20 +24,10 @@ type CategoryOptions struct {
 	TargetField  string // target field
 }
 
-func evaluateExpressions(filters []string, data map[string]interface{}) (bool, error) {
+func evaluateExpressions(filters []string, data readformats.CSVRow) (bool, error) {
 	// 处理数据
 	env := make(map[string]interface{})
 	for i, value := range data {
-		//v := fmt.Sprintf("%v", value)
-		//if strings.Contains(v, ",") {
-		//	env[i] = strings.Split(v, ",")
-		//} else {
-		//	if intValue, err := strconv.Atoi(v); err == nil {
-		//		env[i] = intValue
-		//	} else {
-		//		env[i] = value
-		//	}
-		//}
 		env[i] = value
 	}
 
@@ -55,7 +45,6 @@ func evaluateExpressions(filters []string, data map[string]interface{}) (bool, e
 			return false, err
 		}
 
-		// 只要有一个表达式为true，匹配成功
 		if output.(bool) {
 			return true, nil
 		}
@@ -63,45 +52,13 @@ func evaluateExpressions(filters []string, data map[string]interface{}) (bool, e
 	return false, nil
 }
 
-func matchFields(fields string, tempData []map[string]interface{}, field string, targetFields []string) map[string]interface{} {
-	result := make(map[string]interface{})
-	fieldList := strings.Split(fields, ",")
-
-	for _, targetField := range targetFields {
-		result[targetField] = ""
-	}
-
-	for _, f := range fieldList {
-		f = strings.TrimSpace(f)
-		for _, csvRow := range tempData {
-			if f == strings.TrimSpace(csvRow[field].(string)) {
-				for _, targetField := range targetFields {
-					if result[targetField] == "" {
-						result[targetField] = csvRow[targetField]
-					} else {
-						result[targetField] = fmt.Sprintf("%v,%v", result[targetField], csvRow[targetField])
-					}
-				}
-			}
-		}
-	}
-
-	return result
-}
-
 func Category(configFile, inputFile string, options ...CategoryOptions) (string, error) {
 	var (
 		unique bool
-		rFile  string
-		sField string
-		tField string
 	)
 
 	if len(options) > 0 {
 		unique = options[0].Unique
-		rFile = strings.ToLower(options[0].RelationFile)
-		sField = strings.ToLower(options[0].SourceField)
-		tField = strings.ToLower(options[0].TargetField)
 	}
 
 	yamlReader := readformats.NewYAMLReader(configFile)
@@ -111,36 +68,13 @@ func Category(configFile, inputFile string, options ...CategoryOptions) (string,
 	}
 
 	// 打开 CSV 文件进行读取
-	csvReader := readformats.NewCSVReader(inputFile)
-	data, header, err := csvReader.ReadFile()
+	data, header, err := readformats.LoadCSVStreamed(inputFile)
 	if err != nil {
 		return "", fmt.Errorf("error opening CSV file: %v", err)
 	}
 
-	// 数据关联
-	if len(rFile) > 0 {
-		tempReader := readformats.NewCSVReader(rFile)
-		tempData, _, err := tempReader.ReadFile()
-		if err != nil {
-			return "", fmt.Errorf("error opening CSV rFile: %v", err)
-		}
-
-		tFieldSlice := strings.Split(tField, ",")
-
-		for i, row := range data {
-			var fields string
-			if row[sField] == nil {
-				fields = ""
-			} else {
-				fields = row[sField].(string)
-			}
-			matchedFields := matchFields(fields, tempData, sField, tFieldSlice)
-			for _, targetField := range tFieldSlice {
-				data[i][targetField] = matchedFields[targetField]
-			}
-		}
-
-		header = append(header, tFieldSlice...)
+	if len(data) == 0 {
+		return "", fmt.Errorf("no data found in input file: %s", inputFile)
 	}
 
 	// 创建输出文件的 writer 映射

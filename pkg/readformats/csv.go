@@ -2,72 +2,37 @@ package readformats
 
 import (
 	"encoding/csv"
-	"fmt"
+	"io"
 	"os"
-	"strings"
 )
 
-type CSVReader struct {
-	Filename      string
-	ColumnsToKeep []string
-}
+type CSVRow map[string]string
 
-func NewCSVReader(filename string) *CSVReader {
-	return &CSVReader{Filename: filename}
-}
-
-func toLowerSlice(strs []string) []string {
-	for i, s := range strs {
-		strs[i] = strings.ToLower(s)
-	}
-	return strs
-}
-
-func (c *CSVReader) ReadFile() ([]map[string]interface{}, []string, error) {
-	file, err := os.Open(c.Filename)
+func LoadCSVStreamed(filePath string) ([]CSVRow, []string, error) {
+	file, err := os.Open(filePath)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to open file: %v", err)
+		return nil, nil, err
 	}
 	defer file.Close()
-
 	reader := csv.NewReader(file)
-	header, err := reader.Read()
-	header = toLowerSlice(header)
+	var rows []CSVRow
+	headers, err := reader.Read()
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to read header: %v", err)
+		return nil, nil, err
 	}
-
-	keepIndices := make(map[int]string)
-	for i, col := range header {
-		if len(c.ColumnsToKeep) > 0 {
-			for _, keepCol := range c.ColumnsToKeep {
-				if col == keepCol {
-					keepIndices[i] = col
-					break
-				}
-			}
-		}
-		keepIndices[i] = col
-	}
-
-	var result []map[string]interface{}
 	for {
-		row, err := reader.Read()
+		record, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
-			if err.Error() == "EOF" {
-				break
-			}
-			return nil, nil, fmt.Errorf("failed to read row: %v", err)
+			return nil, nil, err
 		}
-
-		rowData := make(map[string]interface{})
-		for i, value := range row {
-			if col, ok := keepIndices[i]; ok {
-				rowData[col] = value
-			}
+		row := make(CSVRow)
+		for i, value := range record {
+			row[headers[i]] = value
 		}
-		result = append(result, rowData)
+		rows = append(rows, row)
 	}
-
-	return result, header, nil
+	return rows, headers, nil
 }

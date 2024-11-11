@@ -3,6 +3,7 @@ package gofofa
 import (
 	"errors"
 	"git.gobies.org/goby/httpclient"
+	"log"
 	"net"
 	"strconv"
 )
@@ -15,8 +16,13 @@ type HttpResponse struct {
 func DoHttpCheck(rowURL string, retry int) HttpResponse {
 	fURL := httpclient.NewFixUrl(rowURL)
 	cfg := httpclient.NewGetRequestConfig("/")
+	cfg.VerifyTls = false
+	cfg.Timeout = 30
+	cfg.FollowRedirect = false
 	resp, err := retryDoHttpRequest(fURL, cfg, retry)
+	log.Println("finish:", rowURL)
 	if err != nil {
+		log.Println("finish:", rowURL, "error:", err)
 		return HttpResponse{false, "0"}
 	}
 

@@ -288,8 +288,6 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 		linkIndex, fields = getParamIndexThenAdd(fields, "link")
 	}
 
-	fmt.Println(fields)
-
 	// 分页取数据
 	for {
 		if ctx := c.GetContext(); ctx != nil {
