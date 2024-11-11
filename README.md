@@ -563,13 +563,13 @@ categories:
 - 可以在config.yaml文件中设置好过滤规则`filter`，内置了一个`contain`方法，意思是某一个字段是否含有什么值`-output`不设置会默认生成`category.csv`文件:
 
 ```shell
-$ fofa category -input input.csv [-output category.csv -rFile relation.csv -sField source -tField target1,target2...]
+$ fofa category -input input.csv [-output category.csv]
 ```
 
 或者更简洁一些:
 
 ```shell
-$ fofa category -i input.csv [-o category.csv -rFile relation.csv -sField source -tField target1,target2...]
+$ fofa category -i input.csv [-o category.csv]
 ```
 
 ### Utils
