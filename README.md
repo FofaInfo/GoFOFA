@@ -31,13 +31,13 @@ $ go install github.com/LubyRuffy/gofofa/cmd/fofa@latest
 ```
 $ fofa
 NAME:
-   fofa - fofa client on Go v0.2.23, commit none, built at unknown
+   fofa - fofa client on Go v0.2.25, commit none, built at unknown
 
 USAGE:
    fofa [global options] command [command options] [arguments...]
 
 VERSION:
-   v0.2.23
+   v0.2.25
 
 AUTHOR:
    LubyRuffy <lubyruffy@gmail.com>
@@ -54,6 +54,8 @@ COMMANDS:
    domains  extend domains from a domain
    active   website active
    dedup    remove duplicate tool
+   category  classify data according to config
+   jsRender  website js render
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
