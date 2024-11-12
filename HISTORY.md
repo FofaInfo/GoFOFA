@@ -1,6 +1,11 @@
+## v0.2.25 add jsRender command
+
+-   jsRender use as: ```fofa jsRender -u http://baidu.com -t title [-o jsRender.csv]```
+-   jsRender of pipline use as: ```fofa search -f link -s 3 port=80 | fofa jsRender -t title```
+
 ## v0.2.24 add category command
 
--   category use as: ```fofa category -i input.csv [-o category.csv -rFile relation.csv -sField source -tField target1,target2...]```
+-   category use as: ```fofa category -i input.csv [-o category.csv]```
 
 ## v0.2.23 add headline in search command
 

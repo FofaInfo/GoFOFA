@@ -117,9 +117,6 @@ func BrowserAction(ctx *cli.Context) error {
 	if len(ctx.Args().Slice()) > 0 {
 		return errors.New("please use -h to view usage")
 	}
-	if browserURL == "" && inFile == "" {
-		return errors.New("please specify the browser url or inFile")
-	}
 	if browserTags == "" {
 		return errors.New("please specify the browser tags")
 	}

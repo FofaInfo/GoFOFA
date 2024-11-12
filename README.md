@@ -549,7 +549,7 @@ $ fofa dedup -o data.csv -d ip,host,domain -o dedup.csv
 categories:
   - name: "hard"
     filters:
-      - "contain(category, '数据证书')"
+      - "CONTAIN(category, '数据证书')"
 
   - name: "soft"
     filters:
@@ -557,10 +557,10 @@ categories:
 
   - name: "buss"
     filters:
-      - "category == '电子邮件系统' || contain(category, '其他企业应用')"
+      - "category == '电子邮件系统' || CONTAIN(category, '其他企业应用')"
 
 ```
-- 可以在config.yaml文件中设置好过滤规则`filter`，内置了一个`contain`方法，意思是某一个字段是否含有什么值`-output`不设置会默认生成`category.csv`文件:
+- 可以在config.yaml文件中设置好过滤规则`filter`，内置了一个`CONTAIN`方法，意思是某一个字段是否含有什么值`-output`不设置会默认生成`category.csv`文件:
 
 ```shell
 $ fofa category -input input.csv [-output category.csv]
@@ -571,6 +571,48 @@ $ fofa category -input input.csv [-output category.csv]
 ```shell
 $ fofa category -i input.csv [-o category.csv]
 ```
+
+
+### JsRender
+
+> 存活探测
+
+- jsRender模块用来对url进行js渲染，可以使用`-url`来选择单个目标，`-tag`选择获取渲染后的标签:
+
+
+```shell
+$ fofa jsRender -url http://baidu.com -tag title
+http://baidu.com,百度一下，你就知道
+```
+
+或者可以更简洁一些:
+
+```shell
+$ fofa jsRender -u http://baidu.com -t title
+http://baidu.com,百度一下，你就知道
+```
+
+- 还可以通过对一个每行为一个url的文件进行探测:
+
+```shell
+$ cat url.txt
+http://baidu.com
+https://fofa.info
+$ fofa jsRender -i url.txt -t title 
+http://baidu.com,百度一下，你就知道
+https://fofa.info,网络空间测绘，网络空间安全搜索引擎，网络空间搜索引擎，安全态势感知 - FOFA网络空间测绘系统
+```
+
+- 还支持对管道中的url进行探测（管道中的数据需为每行一条url）:
+
+
+```shell
+$ fofa search -f link -s 3 port=80 | fofa jsRender -t title
+2024/08/23 15:50:11 query fofa of: port=80
+http://project5.abioyibo.com,Just another WordPress site
+http://www.valuegoodsbazaar.shop,srv258.sellvir.com — Coming Soon
+http://forecasting-preprod.pcasys.co.uk,- Sales Forecasting Tool (preprod)
+
 
 ### Utils
 
