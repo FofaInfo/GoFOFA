@@ -14,15 +14,15 @@ type HttpResponse struct {
 }
 
 func DoHttpCheck(rowURL string, retry int) HttpResponse {
+	log.Println("check active of:", rowURL)
 	fURL := httpclient.NewFixUrl(rowURL)
 	cfg := httpclient.NewGetRequestConfig("/")
 	cfg.VerifyTls = false
 	cfg.Timeout = 30
 	cfg.FollowRedirect = false
 	resp, err := retryDoHttpRequest(fURL, cfg, retry)
-	log.Println("finish:", rowURL)
 	if err != nil {
-		log.Println("finish:", rowURL, "error:", err)
+		log.Println("check active of:", rowURL, "error:", err)
 		return HttpResponse{false, "0"}
 	}
 
