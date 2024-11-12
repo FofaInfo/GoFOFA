@@ -120,18 +120,7 @@ func BrowserAction(ctx *cli.Context) error {
 	if browserTags == "" {
 		return errors.New("please specify the browser tags")
 	}
-	if workers > 5 {
-		log.Println("specify workers are large, whether to continue? (y/n)")
-		reader := bufio.NewReader(os.Stdin)
-		input, _ := reader.ReadString('\n')
-		input = strings.TrimSpace(input)
-		if strings.ToLower(input) == "y" || input == "" {
-			log.Println("continuing operation...")
-		} else {
-			log.Println("operation canceled")
-			return errors.New("user exit")
-		}
-	}
+
 	tags := strings.Split(browserTags, ",")
 
 	// gen output
