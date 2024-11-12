@@ -10,7 +10,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"strings"
 	"sync"
 )
 
@@ -24,10 +23,10 @@ var activeCmd = &cli.Command{
 	Usage: "website active",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:        "target",
-			Aliases:     []string{"t"},
+			Name:        "url",
+			Aliases:     []string{"u"},
 			Value:       "",
-			Usage:       "probe active for targets",
+			Usage:       "probe active for url",
 			Destination: &activeTarget,
 		},
 		&cli.StringFlag{
@@ -41,6 +40,12 @@ var activeCmd = &cli.Command{
 			Aliases:     []string{"i"},
 			Usage:       "input file to build template if not use pipeline mode",
 			Destination: &inFile,
+		},
+		&cli.StringFlag{
+			Name:        "format",
+			Value:       "csv",
+			Usage:       "can be csv/json/xml",
+			Destination: &format,
 		},
 		&cli.IntFlag{
 			Name:        "workers",
@@ -58,15 +63,14 @@ var activeCmd = &cli.Command{
 	Action: ActiveAction,
 }
 
-func pipelineLink(writeLink func(links []string) error, in io.Reader) {
+func pipelineLink(writeLink func(link string) error, in io.Reader) {
 	// 并发模式
 	wg := sync.WaitGroup{}
 	links := make(chan string, workers)
 
 	worker := func(links <-chan string, wg *sync.WaitGroup) {
 		for l := range links {
-			tmpLink := []string{l}
-			if err := writeLink(tmpLink); err != nil {
+			if err := writeLink(l); err != nil {
 				log.Println("[WARNING]", err)
 			}
 			wg.Done()
@@ -98,11 +102,6 @@ func ActiveAction(ctx *cli.Context) error {
 		}
 	}
 
-	var targets []string
-	if len(activeTarget) > 0 {
-		targets = strings.Split(activeTarget, ",")
-	}
-
 	// gen output
 	var outTo io.Writer
 	if len(outFile) > 0 {
@@ -117,21 +116,27 @@ func ActiveAction(ctx *cli.Context) error {
 	}
 
 	// gen writer
+	headFields := []string{"url", "isActive"}
 	var writer outformats.OutWriter
-	writer = outformats.NewCSVWriter(outTo)
+	switch format {
+	case "csv":
+		writer = outformats.NewCSVWriter(outTo)
+	case "json":
+		writer = outformats.NewJSONWriter(outTo, headFields)
+	case "xml":
+		writer = outformats.NewXMLWriter(outTo, headFields)
+	default:
+		return fmt.Errorf("unknown format: %s", format)
+	}
 
 	var locker sync.Mutex
 
-	writeLink := func(links []string) error {
-		var res [][]string
+	writeLink := func(link string) error {
+		// do active
+		resp := gofofa.DoHttpCheck(link, retry)
+		res := [][]string{{link, fmt.Sprintf("%t", resp.IsActive)}}
 
-		for _, l := range links {
-			var result []string
-			resp := gofofa.DoHttpCheck(l, retry)
-			result = append(result, l, fmt.Sprintf("%t", resp.IsActive))
-			res = append(res, result)
-		}
-
+		// output
 		locker.Lock()
 		defer locker.Unlock()
 		if err := writer.WriteAll(res); err != nil {
@@ -142,8 +147,8 @@ func ActiveAction(ctx *cli.Context) error {
 		return nil
 	}
 
-	if len(targets) != 0 {
-		return writeLink(targets)
+	if len(activeTarget) != 0 {
+		return writeLink(activeTarget)
 	} else {
 		var inf io.Reader
 		if inFile != "" {
