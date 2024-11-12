@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/LubyRuffy/gofofa"
 	"github.com/LubyRuffy/gofofa/pkg/outformats"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"io"
 	"log"
@@ -140,23 +141,28 @@ func BrowserAction(ctx *cli.Context) error {
 	headFields := []string{"url"}
 	headFields = append(headFields, tags...)
 	var writer outformats.OutWriter
-	switch format {
-	case "csv":
-		writer = outformats.NewCSVWriter(outTo)
-	case "json":
+	if hasBodyField(tags) && format == "csv" {
+		logrus.Warnln("fields contains body, so change format to json")
 		writer = outformats.NewJSONWriter(outTo, headFields)
-	case "xml":
-		writer = outformats.NewXMLWriter(outTo, headFields)
-	default:
-		return fmt.Errorf("unknown format: %s", format)
+	} else {
+		switch format {
+		case "csv":
+			writer = outformats.NewCSVWriter(outTo)
+		case "json":
+			writer = outformats.NewJSONWriter(outTo, headFields)
+		case "xml":
+			writer = outformats.NewXMLWriter(outTo, headFields)
+		default:
+			return fmt.Errorf("unknown format: %s", format)
+		}
 	}
 
 	var locker sync.Mutex
 
-	writeData := func(url string) error {
-		log.Println("js render of:", url)
+	writeURL := func(u string) error {
+		log.Println("js render of:", u)
 		// do jsBrowser
-		b := gofofa.NewWorkerBrowser(url)
+		b := gofofa.NewWorkerBrowser(u)
 		body, err := b.Run()
 		if err != nil {
 			return err
@@ -176,7 +182,7 @@ func BrowserAction(ctx *cli.Context) error {
 	}
 
 	if browserURL != "" {
-		return writeData(browserURL)
+		return writeURL(browserURL)
 	} else {
 		var inf io.Reader
 		if inFile != "" {
@@ -189,7 +195,7 @@ func BrowserAction(ctx *cli.Context) error {
 		} else {
 			inf = os.Stdin
 		}
-		concurrentPipeline(writeData, inf)
+		concurrentPipeline(writeURL, inf)
 	}
 	return nil
 }

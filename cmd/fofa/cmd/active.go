@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"github.com/LubyRuffy/gofofa"
 	"github.com/LubyRuffy/gofofa/pkg/outformats"
 	"github.com/urfave/cli/v2"
 	"io"
-	"log"
 	"os"
 	"sync"
 )
@@ -63,37 +61,6 @@ var activeCmd = &cli.Command{
 	Action: ActiveAction,
 }
 
-func pipelineLink(writeLink func(link string) error, in io.Reader) {
-	// 并发模式
-	wg := sync.WaitGroup{}
-	links := make(chan string, workers)
-
-	worker := func(links <-chan string, wg *sync.WaitGroup) {
-		for l := range links {
-			if err := writeLink(l); err != nil {
-				log.Println("[WARNING]", err)
-			}
-			wg.Done()
-		}
-	}
-	for w := 0; w < workers; w++ {
-		go worker(links, &wg)
-	}
-
-	scanner := bufio.NewScanner(in)
-	for scanner.Scan() { // internally, it advances token based on sperator
-		line := scanner.Text()
-		wg.Add(1)
-		links <- line
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Println(err)
-	}
-
-	wg.Wait()
-}
-
 func ActiveAction(ctx *cli.Context) error {
 	// valid same config
 	for _, arg := range ctx.Args().Slice() {
@@ -131,10 +98,10 @@ func ActiveAction(ctx *cli.Context) error {
 
 	var locker sync.Mutex
 
-	writeLink := func(link string) error {
+	writeURL := func(u string) error {
 		// do active
-		resp := gofofa.DoHttpCheck(link, retry)
-		res := [][]string{{link, fmt.Sprintf("%t", resp.IsActive)}}
+		resp := gofofa.DoHttpCheck(u, retry)
+		res := [][]string{{u, fmt.Sprintf("%t", resp.IsActive)}}
 
 		// output
 		locker.Lock()
@@ -148,7 +115,7 @@ func ActiveAction(ctx *cli.Context) error {
 	}
 
 	if len(activeTarget) != 0 {
-		return writeLink(activeTarget)
+		return writeURL(activeTarget)
 	} else {
 		var inf io.Reader
 		if inFile != "" {
@@ -161,7 +128,7 @@ func ActiveAction(ctx *cli.Context) error {
 		} else {
 			inf = os.Stdin
 		}
-		pipelineLink(writeLink, inf)
+		concurrentPipeline(writeURL, inf)
 	}
 
 	return nil
