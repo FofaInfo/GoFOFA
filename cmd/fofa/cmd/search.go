@@ -318,14 +318,7 @@ func SearchAction(ctx *cli.Context) error {
 	}
 
 	if headline && format == "csv" && len(outFile) > 0 {
-		// 将首字母大写
-		for i, v := range headFields {
-			if v == "ip" {
-				headFields[i] = strings.ToUpper(v)
-				continue
-			}
-			headFields[i] = strings.ToUpper(v[:1]) + v[1:]
-		}
+		// 写入表头
 		err := writer.WriteAll([][]string{headFields})
 		if err != nil {
 			return err
