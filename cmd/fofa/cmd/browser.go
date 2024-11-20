@@ -34,8 +34,8 @@ var browserCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:        "tags",
 			Aliases:     []string{"t"},
-			Value:       "",
-			Usage:       "print tag content",
+			Value:       "title",
+			Usage:       "print tag content, can be title/body",
 			Destination: &browserTags,
 		},
 		&cli.StringFlag{
@@ -117,9 +117,6 @@ func concurrentPipeline(writeData func(url string) error, in io.Reader) {
 func BrowserAction(ctx *cli.Context) error {
 	if len(ctx.Args().Slice()) > 0 {
 		return errors.New("please use -h to view usage")
-	}
-	if browserTags == "" {
-		return errors.New("please specify the browser tags")
 	}
 
 	tags := strings.Split(browserTags, ",")
