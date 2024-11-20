@@ -14,7 +14,7 @@ func TestCheckActive(t *testing.T) {
 		{
 			name:          "Success base",
 			fixedHostInfo: "http://www.baidu.com",
-			want:          HttpResponse{IsActive: true, StatusCode: "302"},
+			want:          HttpResponse{IsActive: true, StatusCode: "200"},
 		},
 		{
 			name:          "Fail base",
@@ -29,7 +29,12 @@ func TestCheckActive(t *testing.T) {
 		{
 			name:          "Domain base",
 			fixedHostInfo: "baidu.com",
-			want:          HttpResponse{IsActive: true, StatusCode: "302"},
+			want:          HttpResponse{IsActive: true, StatusCode: "200"},
+		},
+		{
+			name:          "HTTPS base",
+			fixedHostInfo: "https://fofa.info",
+			want:          HttpResponse{IsActive: true, StatusCode: "200"},
 		},
 	}
 	for _, tt := range tests {

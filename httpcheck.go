@@ -1,11 +1,14 @@
 package gofofa
 
 import (
+	"crypto/tls"
 	"errors"
-	"git.gobies.org/goby/httpclient"
 	"log"
 	"net"
+	"net/http"
 	"strconv"
+	"strings"
+	"time"
 )
 
 type HttpResponse struct {
@@ -13,14 +16,36 @@ type HttpResponse struct {
 	StatusCode string
 }
 
+func NewFixUrl(rowURL string) string {
+	fullURL := rowURL
+	hasScheme := strings.Contains(rowURL, "://")
+	if !hasScheme {
+		fullURL = "http://" + fullURL
+	}
+	fullURL = strings.Trim(fullURL, " \t\r\n")
+	return fullURL
+}
+
+func NewRequestConfig(fullURL string) *http.Client {
+	client := &http.Client{
+		Timeout: time.Second * time.Duration(30), // 超时时间
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse // 禁止自动跳转
+		},
+	}
+	if strings.HasPrefix(fullURL, "https://") {
+		client.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true, MinVersion: tls.VersionTLS10},
+		}
+	}
+	return client
+}
+
 func DoHttpCheck(rowURL string, retry int) HttpResponse {
 	log.Println("check active of:", rowURL)
-	fURL := httpclient.NewFixUrl(rowURL)
-	cfg := httpclient.NewGetRequestConfig("/")
-	cfg.VerifyTls = false
-	cfg.Timeout = 30
-	cfg.FollowRedirect = false
-	resp, err := retryDoHttpRequest(fURL, cfg, retry)
+	fURL := NewFixUrl(rowURL)
+	client := NewRequestConfig(fURL)
+	resp, err := retryDoHttpRequest(client, fURL, retry)
 	if err != nil {
 		log.Println("check active of:", rowURL, "error:", err)
 		return HttpResponse{false, "0"}
@@ -29,9 +54,13 @@ func DoHttpCheck(rowURL string, retry int) HttpResponse {
 	return HttpResponse{true, strconv.Itoa(resp.StatusCode)}
 }
 
-func retryDoHttpRequest(hostinfo *httpclient.FixUrl, req *httpclient.RequestConfig, retry int) (*httpclient.HttpResponse, error) {
+func retryDoHttpRequest(client *http.Client, url string, retry int) (*http.Response, error) {
 	for i := 0; i < retry; i++ {
-		resp, err := httpclient.DoHttpRequest(hostinfo, req)
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := client.Do(req)
 		if err != nil {
 			var netError net.Error
 			if errors.As(err, &netError) {
