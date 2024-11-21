@@ -1,7 +1,3 @@
-当然，我很乐意帮助您将 Markdown 格式的命令行工具使用手册中的中文部分翻译成英文。以下是根据您提供的框架和内容翻译后的版本：
-
----
-
 # GoFOFA
 
 [:blue_book: 中文 README]()   |   [:floppy_disk: Download]()   |   [:orange_book: FOFA API Documentation](https://en.fofa.info/api)
