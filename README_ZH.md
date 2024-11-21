@@ -2,7 +2,7 @@
 
 
 
-[:blue_book: 英文 README]()   |   [:floppy_disk:  下载]()   |   [:orange_book:  FOFA API文档](http://fofax.xiecat.fun/)
+[:blue_book: 英文 README]()   |   [:floppy_disk:  下载]()   |   [:orange_book:  FOFA API文档](https://fofa.info/api)
 
 
 ## 项目背景
