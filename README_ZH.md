@@ -107,7 +107,7 @@ $ export FOFA_KEY='your_key'
 
 #### MacOS/Linux版本
 
-可以将下载的 FoFaX 压缩包解压放在 `/usr/local/bin/` 目录下，这样的好处是在终端任何一个位置都可以使用这个命令。
+可以将下载的 GoFOFA 压缩包解压放在 `/usr/local/bin/` 目录下，这样的好处是在终端任何一个位置都可以使用这个命令。
 
 ```text
 tar -zxvf ~/Downloads/fofa_0.2.25_darwin_amd64.tar.gz -C /usr/local/bin/
