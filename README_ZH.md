@@ -12,7 +12,7 @@ GoFOFA是一款使用Go语言编写的命令行FOFA查询工具，他除了具�
 我们在里面融合了很多FOFA工程师常用的调取小功能和数据处理的功能，如果您有更多的想法和需求，欢迎随时在issue中进行提交。
 
 
-关于GoFOFA的任何问题，欢迎加入我们的FOFA社区[微信社群]()或[Telegram]() 进行技术交流。
+关于GoFOFA的任何问题，欢迎加入我们的FOFA社区[微信社群](https://github.com/FofaInfo/GoFOFA/blob/74544c05a4fdd2267da35d73a7833a03f875b75e/Resource/wechat%20QRScan.jpg)或[Telegram]() 进行技术交流。
 
 ## 目录
 ### 配置
