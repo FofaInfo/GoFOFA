@@ -69,7 +69,7 @@ var GlobalOptions = []cli.Flag{
 		Name:        "fofaURL",
 		Aliases:     []string{"u"},
 		Value:       gofofa.FofaURLFromEnv(),
-		Usage:       "format: <url>/?email=<email>&key=<key>&version=<v2>",
+		Usage:       "format: <url>/?key=<key>&version=<v2>",
 		Destination: &fofaURL,
 	},
 	&cli.BoolFlag{
