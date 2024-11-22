@@ -2,7 +2,7 @@
 
 [![Latest release](https://img.shields.io/github/v/release/FofaInfo/GoFOFA)](https://github.com/FofaInfo/GoFOFA/releases/latest)![GitHub Release Date](https://img.shields.io/github/release-date/FofaInfo/GoFOFA)![GitHub All Releases](https://img.shields.io/github/downloads/FofaInfo/GoFOFA/total)[![GitHub issues](https://img.shields.io/github/issues/FofaInfo/GoFOFA)](https://github.com/FofaInfo/GoFOFA/issues)
 
-[:blue_book: 中文 README](https://github.com/FofaInfo/GoFOFA/blob/370e4ff07e2aaaacdbca868585870893a358a2aa/README_ZH.md)   |   [:floppy_disk: Download](https://github.com/FofaInfo/GoFOFA/releases/tag/v0.2.25)   |   [:orange_book: FOFA API Documentation](https://en.fofa.info/api)
+[:blue_book: 中文 README](https://github.com/FofaInfo/GoFOFA/blob/main/README_ZH.md)   |   [:floppy_disk: Download](https://github.com/FofaInfo/GoFOFA/releases/tag/v0.2.25)   |   [:orange_book: FOFA API Documentation](https://en.fofa.info/api)
 
 ## Background
 
@@ -289,6 +289,21 @@ $ fofa count port=80
 ```
 ### Query Function Module
 #### Batch Search
+
+Enable batch search through the `--batchType` parameter of the search module, and use it in conjunction with the `--template` parameter.
+
+```shell
+$ cat ip.txt
+106.75.95.206
+123.58.224.8
+$ fofa search -i ip.txt --batchType ip --template {}
+2024/11/22 11:26:09 not set fofa query, now in pipeline mode....
+2024/11/22 11:26:09 query fofa of: ip=106.75.95.206 || ip=123.58.224.8
+123.58.224.8,40544
+123.58.224.8,31497
+106.75.95.206,80
+......
+```
 
 #### URL Concatenation
 
