@@ -2,7 +2,7 @@
 
 [![Latest release](https://img.shields.io/github/v/release/FofaInfo/GoFOFA)](https://github.com/FofaInfo/GoFOFA/releases/latest)![GitHub Release Date](https://img.shields.io/github/release-date/FofaInfo/GoFOFA)![GitHub All Releases](https://img.shields.io/github/downloads/FofaInfo/GoFOFA/total)[![GitHub issues](https://img.shields.io/github/issues/FofaInfo/GoFOFA)](https://github.com/FofaInfo/GoFOFA/issues)
 
-[:blue_book: 中文 README](https://github.com/FofaInfo/GoFOFA/blob/370e4ff07e2aaaacdbca868585870893a358a2aa/README_ZH.md)   |   [:floppy_disk: Download]()   |   [:orange_book: FOFA API Documentation](https://en.fofa.info/api)
+[:blue_book: 中文 README](https://github.com/FofaInfo/GoFOFA/blob/370e4ff07e2aaaacdbca868585870893a358a2aa/README_ZH.md)   |   [:floppy_disk: Download](https://github.com/FofaInfo/GoFOFA/releases/tag/v0.2.25)   |   [:orange_book: FOFA API Documentation](https://en.fofa.info/api)
 
 ## Background
 
