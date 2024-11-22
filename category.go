@@ -3,7 +3,7 @@ package gofofa
 import (
 	"encoding/csv"
 	"fmt"
-	"github.com/LubyRuffy/gofofa/pkg/readformats"
+	"github.com/FofaInfo/GoFOFA/pkg/readformats"
 	"github.com/expr-lang/expr"
 	"log"
 	"os"

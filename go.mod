@@ -1,4 +1,4 @@
-module github.com/LubyRuffy/gofofa
+module github.com/FofaInfo/GoFOFA
 
 go 1.22.0
 

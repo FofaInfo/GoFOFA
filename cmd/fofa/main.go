@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/LubyRuffy/gofofa/cmd/fofa/cmd"
+	"github.com/FofaInfo/GoFOFA/cmd/fofa/cmd"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"

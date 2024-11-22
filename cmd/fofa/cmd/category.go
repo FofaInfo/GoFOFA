@@ -3,8 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github.com/LubyRuffy/gofofa"
-	"github.com/LubyRuffy/gofofa/pkg/readformats"
+	"github.com/FofaInfo/GoFOFA/pkg/readformats"
 	"github.com/urfave/cli/v2"
 	"os"
 	"path/filepath"

@@ -2,7 +2,7 @@ package gofofa
 
 import (
 	"fmt"
-	"github.com/LubyRuffy/gofofa/pkg/readformats"
+	"github.com/FofaInfo/GoFOFA/pkg/readformats"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"

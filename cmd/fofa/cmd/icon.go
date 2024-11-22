@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/LubyRuffy/gofofa"
 	"github.com/pkg/browser"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
