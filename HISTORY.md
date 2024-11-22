@@ -2,6 +2,7 @@
 
 -   jsRender use as: ```fofa jsRender -u http://baidu.com -t title [-o jsRender.csv]```
 -   jsRender of pipline use as: ```fofa search -f link -s 3 port=80 | fofa jsRender -t title```
+-   search of batchType use as: ```fofa search -i ip.txt --batchType ip --template {}```
 
 ## v0.2.24 add category command
 

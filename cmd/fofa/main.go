@@ -29,6 +29,10 @@ func main() {
 				Name:  "LubyRuffy",
 				Email: "lubyruffy@gmail.com",
 			},
+			{
+				Name:  "Y13z",
+				Email: "y13z@outlook.com",
+			},
 		},
 		Flags:    cmd.GlobalOptions,
 		Before:   cmd.BeforAction,

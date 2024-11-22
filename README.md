@@ -1,24 +1,52 @@
-# gofofa用户指南
+# GoFOFA
 
-fofa client in Go
 
-[![Test status](https://github.com/lubyruffy/gofofa/workflows/Go/badge.svg)](https://github.com/lubyruffy/gofofa/actions?query=workflow%3A%22Go%22)
-[![codecov](https://codecov.io/gh/lubyruffy/gofofa/branch/main/graph/badge.svg)](https://codecov.io/gh/lubyruffy/gofofa)
-[![License: MIT](https://img.shields.io/github/license/lubyruffy/gofofa)](https://github.com/LubyRuffy/gofofa/blob/main/LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/lubyruffy/gofofa)](https://goreportcard.com/report/github.com/lubyruffy/gofofa)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/3eadab4e412e4c3494bbc5f188d441e8)](https://www.codacy.com/gh/LubyRuffy/gofofa/dashboard?utm_source=github.com&utm_medium=referral&utm_content=LubyRuffy/gofofa&utm_campaign=Badge_Grade)
-[![Github Release](https://img.shields.io/github/release/lubyruffy/gofofa/all.svg)](https://github.com/lubyruffy/gofofa/releases)
-[![Go Reference](https://pkg.go.dev/badge/github.com/LubyRuffy/gofofa.svg)](https://pkg.go.dev/github.com/LubyRuffy/gofofa)
 
-## Background
+[:blue_book: 英文 README]()   |   [:floppy_disk:  下载]()   |   [:orange_book:  FOFA API文档](https://fofa.info/api)
 
-The official library doesn't has unittests,  之前官方的库功能不全，代码质量差，完全没有社区活跃度，不符合开源项目的基本要求。因此，想就fofa的客户端作为练手，解决上述问题。
 
-## Usage
+## 项目背景
 
-### Build and run
+GoFOFA是一款使用Go语言编写的命令行FOFA查询工具，他除了具备基础的FOFA API接口调用能力之外，还可以直接对数据进行下一步的处理，通过模块化的调取方式，让数据从元数据到业务数据的转变。
 
-> 安装配置
+我们在里面融合了很多FOFA工程师常用的调取小功能和数据处理的功能，如果您有更多的想法和需求，欢迎随时在issue中进行提交。
+
+
+关于GoFOFA的任何问题，欢迎加入我们的FOFA社区[微信社群](https://github.com/FofaInfo/GoFOFA/blob/74544c05a4fdd2267da35d73a7833a03f875b75e/Resource/wechat%20QRScan.jpg)或[Telegram]() 进行技术交流。
+
+## 目录
+### 配置
+### 数据查询模块
+
+- [基础查询](#基础查询)
+
+- [查询实用功能](#查询实用功能)
+    - [批量搜索（支持txt上传进行批量查询，支持从管道输入查询）](#批量搜索)
+    - [指定URL拼接](#URL拼接)
+    - [随机从FOFA生成数据](#随机从FOFA生成数据)
+    - [证书拓线获取域名](#证书拓线查询域名)
+    - [icon多样查询](#Favicon图标查询)
+    - [大数据量下载](#大数据量下载)
+- [统计聚合接口](#统计聚合接口)
+- [HOST聚合接口](#HOST聚合接口)
+
+
+### 数据处理模块
+
+- [URL去重](#URL去重)
+- [泛解析去重](#泛解析去重)
+- [存活探测（支持从管道批量输入）](#存活探测（支持从管道批量输入)
+- [JS渲染识别（支持从管道批量输入）](#JS渲染识别（支持从管道批量输入）)
+- [数据资产分类](#数据资产分类)
+
+注意：部分数据处理功能模块有必要的字段要求，清在数据调取时确认包含该字段。
+
+### 其他
+
+- [Gofa版本号](#其他)
+- [GoFOFA所有参数示例](#GoFOFA所有参数示例)
+
+## 配置
 
 - 下载gofofa:
 
@@ -41,6 +69,7 @@ VERSION:
 
 AUTHOR:
    LubyRuffy <lubyruffy@gmail.com>
+   Y13z <y13z@outlook.com>
 
 COMMANDS:
    search   fofa host search
@@ -59,7 +88,7 @@ COMMANDS:
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --fofaURL value, -u value  format: <url>/?email=<email>&key=<key>&version=<v2> (default: "https://fofa.info/?email=your_email&key=your_key&version=v1")
+   --fofaURL value, -u value  format: <url>/?key=<key>&version=<v2> (default: "https://fofa.info/?key=your_key&version=v1")
    --verbose                  print more information (default: false)
    --accountDebug             print account in error log (default: false)
    --help, -h                 show help (default: false)
@@ -69,14 +98,33 @@ GLOBAL OPTIONS:
 - 配置环境变量:
 
 ```
-$ FOFA_CLIENT_URL='https://fofa.info/?email=your_email&key=your_key'
+$ export FOFA_CLIENT_URL='https://fofa.info/?key=your_key'
+```
+或者：
+```
+$ export FOFA_KEY='your_key'
+```
+注意：FOFA_CLIENT_URL的优先级最高
+
+#### MacOS/Linux版本
+
+可以将下载的 GoFOFA 压缩包解压放在 `/usr/local/bin/` 目录下，这样的好处是在终端任何一个位置都可以使用这个命令。
+
+```text
+tar -zxvf ~/Downloads/fofa_0.2.25_darwin_amd64.tar.gz -C /usr/local/bin/
 ```
 
-### Search
+#### Windows版本
 
-> 搜索
+解压压缩包，直接运行fofa.exe。
 
--   fofa语法查询，可以输入单个查询语句，默认会输出ip,端口:
+## 功能介绍
+
+### 数据查询模块
+
+#### 基础查询
+
+fofa语法查询，可以输入单个查询语句，默认返回字段是ip和端口。
 
 ```shell
 $ fofa search port=80
@@ -88,7 +136,7 @@ $ fofa search port=80
 ......
 ```
 
-或输入多个查询语句:
+也可以输入语法组合式进行查询。
 
 ```shell
 $ fofa search 'port=80 && protocol=ftp'
@@ -101,7 +149,7 @@ $ fofa search 'port=80 && protocol=ftp'
 ......
 ```
 
--   不选择子模块查询的话，会默认使用search模块进行查询:
+不选择子模块直接查询的话，会默认使用search模块进行查询:
 
 ```shell
 $ fofa domain=qq.com
@@ -114,7 +162,7 @@ $ fofa domain=qq.com
 ......
 ```
 
--   使用fields来选择输出的字段，默认会输出ip，端口:
+使用`--fields`来选择输出的字段，会根据选定的字段进行返回，下面的示例选择了`host,ip,port,protocol,lastupdatetime`字段。
 
 ```shell
 $ fofa search --fields host,ip,port,protocol,lastupdatetime 'port=6379'
@@ -127,7 +175,7 @@ $ fofa search --fields host,ip,port,protocol,lastupdatetime 'port=6379'
 ......
 ```
 
-或者更简洁一些:
+或者更简洁一些，直接使用`-f`来表示字段。
 
 ```shell
 $ fofa search -f host,ip,port,protocol,lastupdatetime 'port=6379'
@@ -142,7 +190,7 @@ $ fofa search -f host,ip,port,protocol,lastupdatetime 'port=6379'
 
 
 
--   使用size来选择输出数量， 默认大小100:
+使用`--size`来选择单词输出的数据返回量， 默认大小是100:
 
 ```shell
 $ fofa search --size 5 'port=6379'
@@ -154,7 +202,7 @@ $ fofa search --size 5 'port=6379'
 139.196.136.107,6379
 ```
 
-或者更简洁一些:
+或者更简洁一些，直接使用`-s`来表示字段。
 
 ```shell
 $ fofa search -s 5 'port=6379'
@@ -166,9 +214,7 @@ $ fofa search -s 5 'port=6379'
 139.196.136.107,6379
 ```
 
-如果size大于您的帐户免费限制，您可以设置 `-deductMode` 来决定是否自动扣除f点
-
--   如果需要输出不同的数据格式，可以通过format来设置，默认是csv格式，还支持json和xml格式:
+如果需要输出不同的数据格式，可以通过`--format`来设置，默认是`csv`格式，还支持`json`和`xml`格式:
 
 ```shell
 $ fofa search --format=json 'port=6379'
@@ -189,7 +235,7 @@ $ fofa search --format=xml 'port=6379'
 ......
 ```
 
-或者:
+或者通知使用`--format json`或者`--format xml`直接进行更换。
 
 ```shell
 $ fofa search --format json 'port=6379'
@@ -210,31 +256,74 @@ $ fofa search --format xml 'port=6379'
 ......
 ```
 
--   使用outFile可以将结果输出到指定文件中，若不设置次参数则默认输出在命令行中:
+使用`--outFile`可以将结果输出到指定文件中，若不设置次参数则默认输出在命令行中:
 
 ```shell
 $ fofa search --outFile a.txt 'port=6379'
 ```
 
-或者更简洁一些:
+或者直接使用`-o`指定输出到指定文件中。
 
 ```shell
 $ fofa search -o a.txt 'port=6379'
 ```
 
--   如果你想获取完整的url，可以使用fixUrl参数:
+账号信息查询接口，通过`account`可以获取账户信息。
+
+```shell
+$ fofa account
+{
+  "error": false,
+  "fcoin": 0,
+  "fofa_point": 99982,
+  "isvip": true,
+  "vip_level": 5,
+  "remain_api_query": 4999635,
+  "remain_api_data": 49949766
+}
+```
+
+FOFA查询结果数量统计，可以通过`count`模块统计数据数量。
+
+```shell
+$ fofa count port=80
+587055296
+```
+
+### 查询实用功能
+#### 批量搜索
+
+通过`search`模块的`--batchType`参数开启批量搜索，配合`--template`参数使用:
+
+```shell
+$ cat ip.txt
+106.75.95.206
+123.58.224.8
+$ fofa search -i ip.txt --batchType ip --template {}
+2024/11/22 11:26:09 not set fofa query, now in pipeline mode....
+2024/11/22 11:26:09 query fofa of: ip=106.75.95.206 || ip=123.58.224.8
+123.58.224.8,40544
+123.58.224.8,31497
+106.75.95.206,80
+......
+```
+
+#### URL拼接
+
+1. 如果你想获取完整的url拼接，可以使用`fixUrl`参数:
 
 ```shell
 $ fofa --size 2 --fields "host" title=Gitblit
 2024/08/23 14:23:02 query fofa of: title=Gitblit
 pmsningbo.veritrans.cn:20202
 platform.starpost.cn:8080
+
 $ fofa --size 2 --fields "host" --fixUrl title=Gitblit
 2024/08/23 14:23:34 query fofa of: title=Gitblit
 http://pmsningbo.veritrans.cn:20202
 http://platform.starpost.cn:8080
 ```
-- 如果你想要使用其他的前缀，可以使用`urlPrefix`:
+2. 如果你想要使用其他的前缀，可以使用`urlPrefix`参数设置前缀:
 
 ```shell
 $ fofa --size 1 --fields "host" --fixUrl --urlPrefix "redis://" protocol=redis
@@ -242,219 +331,27 @@ $ fofa --size 1 --fields "host" --fixUrl --urlPrefix "redis://" protocol=redis
 redis://139.9.222.14:7000
 ```
 
-- 如果你想要进行web存活探测，可以使用```--checkActive 3```，`3`是超时重复次数（使用这个参数之后也会重新获取status_code数据）:
+#### 随机从FOFA生成数据
+
+
+通过`random`命令随机从fofa生成数据:
 
 ```shell
-$ fofa -s 3 --checkActive port=80 
-2024/08/26 18:52:00 query fofa of: port=80
-216.92.244.44,80,true
-104.21.31.50,80,true
-182.247.239.68,80,true
-$ fofa -s 3 --checkActive 3 --format=json port=80
-2024/08/26 18:53:33 query fofa of: port=80
-{"ip":"54.78.179.223","isActive":"false","port":"80"}
-{"ip":"18.155.202.65","isActive":"true","port":"80"}
-{"ip":"198.144.179.122","isActive":"true","port":"80"}
-$ fofa -s 3 --checkActive 3 --format=xml port=80
-2024/08/26 18:54:38 query fofa of: port=80
-<result><ip>50.16.35.210</ip><port>80</port><isActive>true</isActive></result>
-<result><ip>104.21.77.62</ip><port>80</port><isActive>true</isActive></result>
-<result><ip>189.193.236.170</ip><port>80</port><isActive>false</isActive></result>
+$ fofa random -f host,ip,port,lastupdatetime,title,header,body --format json
+{"body":"","header":"HTTP/1.1 401 Unauthorized\r\nWww-Authenticate: Digest realm=\"IgdAuthentication\", domain=\"/\", nonce=\"ZjVhNGY2YzI6MTUyNDM2N2Y6MzRiMGZjZjQ=\", qop=\"auth\", algorithm=MD5\r\nContent-Length: 0\r\n","host":"95.22.200.127:7547","ip":"95.22.200.127","lastupdatetime":"2024-08-14 13:00:00","port":"7547","title":""}
 ```
 
-- 如果你想要减少泛域名数量，可以使用```--deWildcard```设置保留泛域名数量，```-f```可以支持其他字段选用link做为演示（该参数只有企业账号以上可用）:
+可以通过sleep参数设置时间500ms，按照时间每500ms生成一次数据:
 
 ```shell
-$ fofa -s 3 -f link domain=huashunxinan.net
-2024/08/27 17:19:04 query fofa of: domain=huashunxinan.net
-http://h8huumr2zdmwgy5.huashunxinan.net
-http://keygatjexlvsznh.huashunxinan.net
-http://jobs.huashunxinan.net
-$ fofa -s 3 -f link --deWildcard 1 domain=huashunxinan.net
-2024/08/27 17:26:42 query fofa of: domain=huashunxinan.net
-http://h8huumr2zdmwgy5.huashunxinan.net
-https://fwtn2k7oigaiyla.huashunxinan.net
-http://huashunxinan.net
+$ fofa random -s -1 -sleep 500
 ```
 
-- ```--dedupHost```，在fofa中subdomain代表网页数据，service代表协议数据，如果host相同，优先保留subdomain数据:
+#### 证书拓线查询域名
 
-```shell
-$ fofa -s 3 -f host,type "ip=106.75.95.206"
-2024/08/28 19:49:23 query fofa of: ip=106.75.95.206
-106.75.95.206,subdomain
-106.75.95.206:443,service
-106.75.95.206,service
-$ fofa -s 3 -f host,type --dedupHost "ip=106.75.95.206"
-2024/08/28 19:52:30 query fofa of: ip=106.75.95.206
-https://106.75.95.206,subdomain
-106.75.95.206:443,service
-106.75.95.206,subdomain
-```
+domains子模块主要用于最简单的拓线，通过证书进行拓线，可以使用`withCount`来统计数量，来获取更多的数据。
 
-- 如果你想要针对结果进行过滤，你可以使用```-filter```过滤器，它的值是一个布尔表达式，保留符合filter表达式结果的数据:
-
-```shell
-$ fofa -s 3 -f host,title,status_code domain=huashunxinan.net
-2024/08/28 19:56:47 query fofa of: domain=huashunxinan.net
-eedwwsqpoq1yjrf.huashunxinan.net,301 Moved Permanently,301
-https://keygatjexlvsznh.huashunxinan.net,华顺信安-网络空间测绘的先行者,200
-https://i.huashunxinan.net,,301
-$ fofa -s 3 -f host,title,status_code -filter "status_code=='200'&&title!=''" domain=huashunxinan.net
-2024/08/27 17:26:42 query fofa of: domain=huashunxinan.net
-https://www.huashunxinan.net,华顺信安-网络空间测绘的先行者,200
-huashunxinan.net,华顺信安-网络空间测绘的先行者,200
-https://huashunxinan.net,华顺信安-网络空间测绘的先行者,200
-```
-
--   如果你想在输出csv文件的时候添加表头，可以使用参数```--headline```（只有在format为csv的情况下才可以使用）:
-
-```shell
-$ fofa search -f host,port --headline -o output.csv port=80
-```
-
--   如果你想查看更多的debug信息，可以使用全局参数```--verbose```:
-
-```shell
-$ fofa --verbose search port=80
-```
-
--   支持管道:
-
-```shell
-$ fofa -fields "host" -fixUrl 'app="Aspera-Faspex"' | nuclei -t http/cves/2022/CVE-2022-47986.yaml
-```
-
--   如果你想要根据ip进行去重，可以使用```--uniqByIP```:
-
-```shell
-$ fofa --fixUrl --size 5 --fields host ip=123.58.224.8
-2024/08/23 17:58:24 query fofa of: ip=123.58.224.8
-http://123.58.224.8:8008
-http://123.58.224.8
-https://123.58.224.8:63739
-http://123.58.224.8:22937
-https://123.58.224.8:14272
-$ fofa --fixUrl --size 5 --fields host --uniqByIP ip=123.58.224.8
-2024/08/23 17:58:49 query fofa of: ip=123.58.224.8
-http://123.58.224.8:8008
-```
-
--   如果你想要更高级的使用方法，可以使用`{}`做为占位符来达到批量获取数据的效果:
-
-```shell
-$ fofa -f ip "is_ipv6=false && port=22" | fofa -f ip -uniqByIP -template "port=8443 && ip={}" 
-```
-你也可以通过 `-rate 3` 来设置速率, 默认是 2
-
-### Stats
-
-> 数据统计
-
--   stats模块可以做数据统计等操作
-
-```shell
-$ fofa stats --fields title,country title="hacked by"
-```
-![fofa stats](./data/fofa_stats.png)
-
-### Icon
-
->Icon查询（商业版及以上）
-
-- 你可以通过读取本地的ico文件来查询数据，open参数会自动帮你跳转到fofa:
-
-```shell
-$ fofa icon --open ./data/favicon.ico
-```
-
-也可以通过网页的ico文件来查询:
-
-```shell
-$ fofa icon --open https://fofa.info/favicon.ico
-```
-
-还可以直接通过url来查询:
-
-```shell
-$ fofa icon --open http://www.baidu.com
-```
-
-- 获取本地ico文件的hash值:
-
-```shell
-$ fofa icon ./data/favicon.ico
--247388890
-```
-
-也可以获取网页ico文件的hash值:
-
-```shell
-$ fofa icon https://fofa.info/favicon.ico
--247388890
-```
-
-还可以直接获取url的ico_hash值:
-
-```shell
-$ fofa icon http://www.baidu.com
--1588080585
-```
-
-### Host
-
-> 获取Host信息
-
--   Host模块，输入域名即可获取host信息:
-
-```shell
-$ fofa host demo.cpanel.net
-Host:            demo.cpanel.net
-IP:              208.74.120.133
-ASN:             33522
-ORG:             CPANEL-INC
-Country:         United States of America
-CountryCode:     US
-Ports:           [2078 3306 2079 2082 143 993 2086 2095 2083 2087 110 2080 80 995 2096 2077 443]
-Protocols:       imaps,mysql,https,imap,pop3s,http,pop3
-Categories:      Server Management
-Products:        cPanel-MGMT-Products
-UpdateTime:      2022-05-30 17:00:00
-```
-
-### Dump
-
-> 数据存储
-
--   存储超大数据，使用`-batchSize`设置数量:
-
-```shell
-$ fofa dump --format json -fixUrl -outFile a.json -batchSize 10000 'title=phpinfo'
-```
-
--   通过fofa语句文件，来存储超大数据（每条数据一行）:
-
-```shell
-cat queries.txt
-port=13344
-port=23455
-
-# csv
-$ fofa dump -outFile out.csv -inFile queries.txt
-
-# json
-$ fofa dump -inFile queries.txt -outFile out.json -j
-2023/08/09 10:05:33 dump data of query: port=13344
-2023/08/09 10:05:35 size: 11/11, 100.00%
-2023/08/09 10:05:35 dump data of query: port=23455
-2023/08/09 10:05:37 size: 499/499, 100.00%
-```
-
-### Domains
-
-> 简单域名拓线
-
--   domains子模块主要用于最简单的拓线，通过证书进行拓线，可以使用withCount来统计数量:
+该功能必要获取的FOFA字段：`certs_domains、certs_subject_org`
 
 ```shell
 $ fofa domains -s 1000 -withCount baidu.com
@@ -476,59 +373,138 @@ aipage.cn       406
 
 ```
 
-### Active
+#### Favicon图标查询
 
-> 存活探测
+Favicon图标查询及Hash值计算
 
-- active模块用来对url进行web存活探测，可以使用target来获取存活信息，true为存活，false为不存活:
-
-
-```shell
-$ fofa active -target baidu.com,fofa.info,asdsadsasdas.com
-baidu.com,true
-fofa.info,true
-asdsadsasdas.com,false
-```
-
-或者可以更简洁一些:
+直接查询的三种方式：
+1. 你可以通过读取本地的ico文件来查询数据，open参数会自动帮你跳转到fofa:
 
 ```shell
-$ fofa active -t baidu.com,fofa.info,asdsadsasdas.com
-baidu.com,true
-fofa.info,true
-asdsadsasdas.com,false
+$ fofa icon --open ./data/favicon.ico
 ```
 
-- 还可以通过对一个每行为一个url的文件进行探测:
-
+2.也可以通过网页的ico文件来查询:
 
 ```shell
-$ cat target.txt
-baidu.com
-fofa.info
-asdsadsasdas.com
-$ fofa active -i target.txt  
-baidu.com,true
-fofa.info,true
-asdsadsasdas.com,false
+$ fofa icon --open https://fofa.info/favicon.ico
 ```
 
-- 还支持对管道中的url进行探测（管道中的数据需为每行一条url）:
-
+3. 还可以直接通过url来查询:
 
 ```shell
-$ fofa search -f link -s 3 port=80 | fofa active
-2024/08/23 15:50:11 query fofa of: port=80
-http://og823.hb-yj.com,true
-http://rw823.tcxzgh.org,true
-http://sb823.tcxzgh.org,true
+$ fofa icon --open http://www.baidu.com
 ```
 
-### Dedup
+计算图标Hash值的三种方式：
 
-> 去重
+1. 获取本地ico文件的hash值:
 
-- dedup支持对一个csv文件中的某一个字段进行去重，通过input参数上传文件，通过dedup参数选择去重字段（会根据字段顺序进行去重），通过output设置输出文件名（默认duplicate.csv）:
+```shell
+$ fofa icon ./data/favicon.ico
+-247388890
+```
+
+2. 也可以获取网页ico文件的hash值:
+
+```shell
+$ fofa icon https://fofa.info/favicon.ico
+-247388890
+```
+
+3. 还可以直接获取url的ico_hash值:
+
+```shell
+$ fofa icon http://www.baidu.com
+-1588080585
+```
+
+#### 大数据量下载
+
+大批量数据下载使用，使用`-batchSize`设置下载数量，一键完成数据下载并存储到指定文件:
+
+```shell
+$ fofa dump --format json -fixUrl -outFile a.json -batchSize 10000 'title=phpinfo'
+```
+
+通过fofa语句文件，来下载并存储大数据（每条数据一行）:
+
+```shell
+cat queries.txt
+port=13344
+port=23455
+
+# csv
+$ fofa dump -outFile out.csv -inFile queries.txt
+
+# json
+$ fofa dump -inFile queries.txt -outFile out.json -j
+2023/08/09 10:05:33 dump data of query: port=13344
+2023/08/09 10:05:35 size: 11/11, 100.00%
+2023/08/09 10:05:35 dump data of query: port=23455
+2023/08/09 10:05:37 size: 499/499, 100.00%
+```
+
+### 统计聚合接口
+
+数据统计接口调取，stats模块可以做数据统计等操作
+
+```shell
+$ fofa stats --fields title,country title="hacked by"
+===  title
+Hacked By Ashiyane Digital Security Team        706
+Hacked By MR.GREEN      465
+Hacked by Kn1gh7        259
+Hacked By MR.GREEN &#8211; Just another WordPress site  163
+HackeD By Desert Warriors       108
+===  country
+美国    3182
+德国    259
+波兰    225
+英国    223
+新加坡  205
+```
+### HOST聚合接口
+
+HOST聚合接口调取，通过Host模块，输入域名即可获取host视角的资产信息:
+
+```shell
+$ fofa host demo.cpanel.net
+Host:            demo.cpanel.net
+IP:              208.74.120.133
+ASN:             33522
+ORG:             CPANEL-INC
+Country:         United States of America
+CountryCode:     US
+Ports:           [2078 3306 2079 2082 143 993 2086 2095 2083 2087 110 2080 80 995 2096 2077 443]
+Protocols:       imaps,mysql,https,imap,pop3s,http,pop3
+Categories:      Server Management
+Products:        cPanel-MGMT-Products
+UpdateTime:      2022-05-30 17:00:00
+```
+
+### 数据处理模块
+
+#### URL去重
+
+数据去重可以通过两种方式进行。
+
+1. 第一种是边查询边进行去重操作，即从FOFA拉下来的数据就是去重完成的。```--dedupHost```，在fofa中subdomain代表网页数据，service代表协议数据，如果host相同，优先保留subdomain数据:
+
+```shell
+$ fofa search -s 3 -f host,type "ip=106.75.95.206"
+2024/08/28 19:49:23 query fofa of: ip=106.75.95.206
+106.75.95.206,subdomain
+106.75.95.206:443,service
+106.75.95.206,service
+$ fofa search -s 3 -f host,type --dedupHost "ip=106.75.95.206"
+2024/08/28 19:52:30 query fofa of: ip=106.75.95.206
+https://106.75.95.206,subdomain
+106.75.95.206:443,service
+106.75.95.206,subdomain
+```
+
+2. 第二种支持文件上传的形式对已有数据的任意字段进行去重操作。`dedup`命令支持对一个csv文件中的某一个字段进行去重，通过input参数上传文件，通过dedup参数选择去重字段（会根据字段顺序进行去重），通过output设置输出文件名（默认duplicate.csv）:
 
 ```shell
 $ fofa dedup -output data.csv -dedup ip -output dedup.csv
@@ -541,46 +517,98 @@ $ fofa dedup -o data.csv -d ip -o dedup.csv
 $ fofa dedup -o data.csv -d ip,host,domain -o dedup.csv
 ```
 
-### Category
 
-> 分类
+#### 泛解析去重
 
-- Category支持对一个csv文件进行分类，通过config.yaml配置文件来进行分类（配置文件必须在当前目录下），配置文件如下格式:
+所需获取的FOFA字段：ip、port、domain、title、fid
 
-```shell
-categories:
-  - name: "hard"
-    filters:
-      - "CONTAIN(category, '数据证书')"
-
-  - name: "soft"
-    filters:
-      - "category == '其他支撑系统'"
-
-  - name: "buss"
-    filters:
-      - "category == '电子邮件系统' || CONTAIN(category, '其他企业应用')"
-
-```
-- 可以在config.yaml文件中设置好过滤规则`filter`，内置了一个`CONTAIN`方法，意思是某一个字段是否含有什么值`-output`不设置会默认生成`category.csv`文件:
+如果你想要减少泛域名数量，可以使用```--deWildcard```设置保留泛域名数量，```-f```可以支持其他字段选用link做为演示:
 
 ```shell
-$ fofa category -input input.csv [-output category.csv]
+$ fofa search -s 3 -f link domain=huashunxinan.net
+2024/08/27 17:19:04 query fofa of: domain=huashunxinan.net
+http://h8huumr2zdmwgy5.huashunxinan.net
+http://keygatjexlvsznh.huashunxinan.net
+http://jobs.huashunxinan.net
+$ fofa search -s 3 -f link --deWildcard 1 domain=huashunxinan.net
+2024/08/27 17:26:42 query fofa of: domain=huashunxinan.net
+http://h8huumr2zdmwgy5.huashunxinan.net
+https://fwtn2k7oigaiyla.huashunxinan.net
+http://huashunxinan.net
 ```
 
-或者更简洁一些:
+#### 存活探测（支持从管道批量输入）
+
+存活探测可以通过两种方式进行。
+
+1. 第一种模式必要获取字段：link，实现方式是判断用户输入的是否有需要字段，没有则添加上，最终返回的数据只剩下用户输入的字段并在最后加上isActive字段。
+
+可以使用```--checkActive 3```，`3`是超时重复次数（使用这个参数之后也会重新获取status_code数据）:
 
 ```shell
-$ fofa category -i input.csv [-o category.csv]
+$ fofa search -s 3 --checkActive port=80 
+2024/08/26 18:52:00 query fofa of: port=80
+216.92.244.44,80,true
+104.21.31.50,80,true
+182.247.239.68,80,true
+$ fofa search -s 3 --checkActive 3 --format=json port=80
+2024/08/26 18:53:33 query fofa of: port=80
+{"ip":"54.78.179.223","isActive":"false","port":"80"}
+{"ip":"18.155.202.65","isActive":"true","port":"80"}
+{"ip":"198.144.179.122","isActive":"true","port":"80"}
+$ fofa search -s 3 --checkActive 3 --format=xml port=80
+2024/08/26 18:54:38 query fofa of: port=80
+<result><ip>50.16.35.210</ip><port>80</port><isActive>true</isActive></result>
+<result><ip>104.21.77.62</ip><port>80</port><isActive>true</isActive></result>
+<result><ip>189.193.236.170</ip><port>80</port><isActive>false</isActive></result>
 ```
 
+2. 第二种模式支持从管道输入或者从文件输入url，可以使用`--url`来获取存活信息，true为存活，false为不存活:
 
-### JsRender
+```shell
+$ fofa active --url baidu.com,fofa.info,asdsadsasdas.com
+baidu.com,true
+fofa.info,true
+asdsadsasdas.com,false
+```
 
-> 存活探测
+或者可以更简洁一些:
 
-- jsRender模块用来对url进行js渲染，可以使用`-url`来选择单个目标，`-tag`选择获取渲染后的标签:
+```shell
+$ fofa active -u baidu.com,fofa.info,asdsadsasdas.com
+baidu.com,true
+fofa.info,true
+asdsadsasdas.com,false
+```
 
+还可以通过对一个每行为一个url的文件进行探测:
+
+```shell
+$ cat target.txt
+baidu.com
+fofa.info
+asdsadsasdas.com
+$ fofa active -i target.txt  
+baidu.com,true
+fofa.info,true
+asdsadsasdas.com,false
+```
+
+还支持对管道中的url进行探测（管道中的数据需为每行一条url）:
+
+```shell
+$ fofa search -f link -s 3 port=80 | fofa active
+2024/08/23 15:50:11 query fofa of: port=80
+http://og823.hb-yj.com,true
+http://rw823.tcxzgh.org,true
+http://sb823.tcxzgh.org,true
+```
+
+#### JS渲染识别（支持从管道批量输入）
+
+必要获取的FOFA字段：link、需要完成search任务之后，进行单独的渲染识别
+
+jsRender模块用来对url进行js渲染，支持选择获取渲染后的html标签，目前支持获取标签title、body，可以使用`-url`来选择单个目标，`-tag`选择获取渲染后的标签：
 
 ```shell
 $ fofa jsRender -url http://baidu.com -tag title
@@ -594,7 +622,7 @@ $ fofa jsRender -u http://baidu.com -t title
 http://baidu.com,百度一下，你就知道
 ```
 
-- 还可以通过对一个每行为一个url的文件进行探测:
+还可以通过对一个每行为一个url的文件进行探测:
 
 ```shell
 $ cat url.txt
@@ -605,8 +633,7 @@ http://baidu.com,百度一下，你就知道
 https://fofa.info,网络空间测绘，网络空间安全搜索引擎，网络空间搜索引擎，安全态势感知 - FOFA网络空间测绘系统
 ```
 
-- 还支持对管道中的url进行探测（管道中的数据需为每行一条url）:
-
+还支持对管道中的url进行探测（管道中的数据需为每行一条url）:
 
 ```shell
 $ fofa search -f link -s 3 port=80 | fofa jsRender -t title
@@ -614,43 +641,42 @@ $ fofa search -f link -s 3 port=80 | fofa jsRender -t title
 http://project5.abioyibo.com,Just another WordPress site
 http://www.valuegoodsbazaar.shop,srv258.sellvir.com — Coming Soon
 http://forecasting-preprod.pcasys.co.uk,- Sales Forecasting Tool (preprod)
-
-
-### Utils
-
-> 其他
-
--   random 模块
-
-随机从fofa生成数据:
-```shell
-$ fofa random -f host,ip,port,lastupdatetime,title,header,body --format json
-{"body":"","header":"HTTP/1.1 401 Unauthorized\r\nWww-Authenticate: Digest realm=\"IgdAuthentication\", domain=\"/\", nonce=\"ZjVhNGY2YzI6MTUyNDM2N2Y6MzRiMGZjZjQ=\", qop=\"auth\", algorithm=MD5\r\nContent-Length: 0\r\n","host":"95.22.200.127:7547","ip":"95.22.200.127","lastupdatetime":"2024-08-14 13:00:00","port":"7547","title":""}
 ```
 
-可以通过sleep参数设置时间500ms，按照时间每500ms生成一次数据:
+#### 数据资产分类
+
+Category支持对一个csv文件进行分类，通过config.yaml配置文件来进行分类（配置文件必须在当前目录下），配置文件如下格式:
 
 ```shell
-$ fofa random -s -1 -sleep 500
+categories:
+  - name: "百度贴吧"
+    filters:
+      - "(protocol == 'http' || protocol == 'http') && CONTAIN(title, '百度贴吧')"
+      - "domain=='baidu.com' && CONTAIN(title, '百度贴吧')"
+
+  - name: "百度3xx页面"
+    filters:
+      - "domain=='baidu.com' && status_code >= '300' && status_code < '400'"
+
+  - name: "其他"
+    filters:
+      - "CONTAIN(title, '百度')"
+
 ```
 
--   count 模块
-
-可以通过count模块统计数据数量:
+可以在config.yaml文件中设置好过滤规则`filter`，内置了一个`CONTAIN`方法，意思是某一个字段是否含有什么值`-output`不设置会默认生成`category.csv`文件:
 
 ```shell
-$ fofa count port=80
+$ fofa category -input input.csv [-output category.csv]
 ```
 
--   account 模块
-
-可以获取账户信息:
+或者更简洁一些:
 
 ```shell
-$ fofa account
+$ fofa category -i input.csv [-o category.csv]
 ```
 
--   version
+### 其他
 
 获取gofofa版本号
 
@@ -658,67 +684,27 @@ $ fofa account
 $ fofa --version
 ```
 
-## Features
 
--   ☑ Cross-platform
-    -   ☑ Windows
-    -   ☑ Linux
-    -   ☑ Mac
--   ☑ Code coverage > 90%
--   ☑ As SDK
-    -   ☑ Client: NewClient
-        -   ☑ HostSearch
-        -   ☑ HostSize
-        -   ☑ AccountInfo
-        -   ☑ IconHash
-        -   ☑ support cancel through SetContext
--   ☑ As Client
-    -   ☑ Sub Commands
-        -   ☑ account
-        -   ☑ search
-            -   ☑ query
-            -   ☑ fields/f
-            -   ☑ size/s
-            - group/g 根据字段聚合：group by ip 根据ip合并，比如查询一个app会有很多域名，其中多个域名对应一个ip，这时只测试其中一个就好了
-            -   ☑ fixUrl build valid url，默认的字段如果是http的话前面没有http://前缀，导致命令行一些工具不能使用，通过这个参数进行修复
-              -   ☑ can use with urlPrefix, such as use `app://` instead of `http://`
-              -   ☑ support socks5
-              -   ☑ support redis
-            -   ☑ full 匹配所有，而不只是一年内的
-            -   ☑ format
-                -   ☑ csv
-                -   ☑ json
-                -   ☑ xml
-                -   ☐ table
-                -   ☐ excel
-            -   ☑ outFile/o
-        -   ☑ stats
-        -   ☑ icon
-        -   ☐ web
-        -   ☑ dump https://en.fofa.info/api/batches_pages large-scale data retrieval
-        -   ☑ domains
-        -   ☑ active
-        -   ☑ duplicate
-    -   ☑ Terminal color 
-    -   ☑ Global Config
-        -   ☑ fofaURL
-        -   ☑ deductMode
-    -   ☑ Envirement
-        -   ☑ FOFA_CLIENT_URL format: <url>/?email=\<email\>&key=\<key\>&version=\<v1\>
-        -   ☑ FOFA_SERVER
-        -   ☑ FOFA_EMAIL
-        -   ☑ FOFA_KEY
--   ☐ Publish
-    -   ☑ github
-    -   ☐ brew
-    -   ☐ apt
-    -   ☐ yum
+#### GoFOFA所有参数示例
 
-
-## Scenes
-
-### How to dump all domains that cert is valid and contains google?
-
-```shell
-./fofa stats -f domain -s 100 'cert.is_valid=true && (cert="google")'
-```
+| 参数        | 参数简写 | 默认值  | 简介                                              |
+| ----------- | -------- | ------- | ------------------------------------------------- |
+| fields      | f        | ip,port | 获取fofa字段                                      |
+| format      |          | csv     | 输出格式，可以为csv/json/xml                      |
+| outFile     | o        |         | 输出文件，如果不设置则终端打印                    |
+| size        | s        | 100     | 查询数量，最大为10000，受deductMode参数限制       |
+| deductMode  |          |         | 消费f点数，不设置则读取用户最大免费数量           |
+| fixUrl      |          | false   | 是否组合url，例如1.1.1.1,80组合为http://1.1.1.1   |
+| urlPrefix   |          | http:// | url前缀                                           |
+| full        |          | false   | 是否调取全量数据                                  |
+| uniqByIP    |          | false   | 是否根据ip去重                                    |
+| workers     |          | 10      | 线程数量                                          |
+| rate        |          | 2       | 每秒查询次数                                      |
+| template    |          | ip={}   | 从管道获取输入，输入的内容会替换{}                |
+| inFile      | i        |         | 输入文件，如果不设置则读取管道输入                |
+| checkActive |          | -1      | 探活复测次数，-1为不使用探活                      |
+| deWildcard  |          | -1      | 泛解析去重，-1为不使用泛解析去重                  |
+| filter      |          |         | 数据过滤规则，例如`port<100 || host=="baidu.com"` |
+| dedupHost   |          | false   | subdomain去重                                     |
+| headline    |          | false   | 是否输出csv头，只有在format为csv时可用            |
+| help        | h        | false   | 使用方法                                          |

@@ -1,4 +1,5 @@
-/*Package gofofa fofa client in Go
+/*
+Package gofofa fofa client in Go
 
 env settings:
 - FOFA_CLIENT_URL full fofa connnection string, format: <url>/?email=<email>&key=<key>&version=<v2>
@@ -64,7 +65,7 @@ func (c *Client) Update(configURL string) error {
 
 // URL generate fofa connection url string
 func (c *Client) URL() string {
-	return fmt.Sprintf("%s/?email=%s&key=%s&version=%s", c.Server, c.Email, c.Key, c.APIVersion)
+	return fmt.Sprintf("%s/?key=%s&version=%s", c.Server, c.Key, c.APIVersion)
 }
 
 // GetContext 获取context，用于中止任务
