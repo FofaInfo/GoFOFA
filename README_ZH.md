@@ -69,7 +69,7 @@ VERSION:
 
 AUTHOR:
    LubyRuffy <lubyruffy@gmail.com>
-   Y13z <y13z@outlook.com>
+   Y13ze <y13ze@outlook.com>
 
 COMMANDS:
    search   fofa host search

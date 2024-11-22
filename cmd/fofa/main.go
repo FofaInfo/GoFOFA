@@ -30,8 +30,8 @@ func main() {
 				Email: "lubyruffy@gmail.com",
 			},
 			{
-				Name:  "Y13z",
-				Email: "y13z@outlook.com",
+				Name:  "Y13ze",
+				Email: "y13ze@outlook.com",
 			},
 		},
 		Flags:    cmd.GlobalOptions,
