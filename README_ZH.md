@@ -2,7 +2,7 @@
 
 
 
-[:blue_book: 英文 README]()   |   [:floppy_disk:  下载]()   |   [:orange_book:  FOFA API文档](https://fofa.info/api)
+[:blue_book: 英文 README](https://github.com/FofaInfo/GoFOFA/blob/69bf1b199f073289f673a028c154f9eb21d546ff/README.md)   |   [:floppy_disk:  下载]()   |   [:orange_book:  FOFA API文档](https://fofa.info/api)
 
 
 ## 项目背景
@@ -12,7 +12,7 @@ GoFOFA是一款使用Go语言编写的命令行FOFA查询工具，他除了具�
 我们在里面融合了很多FOFA工程师常用的调取小功能和数据处理的功能，如果您有更多的想法和需求，欢迎随时在issue中进行提交。
 
 
-关于GoFOFA的任何问题，欢迎加入我们的FOFA社区[微信社群](https://github.com/FofaInfo/GoFOFA/blob/74544c05a4fdd2267da35d73a7833a03f875b75e/Resource/wechat%20QRScan.jpg)或[Telegram]() 进行技术交流。
+关于GoFOFA的任何问题，欢迎加入我们的FOFA社区[微信社群](https://github.com/FofaInfo/GoFOFA/blob/74544c05a4fdd2267da35d73a7833a03f875b75e/Resource/wechat%20QRScan.jpg)或[Telegram](https://t.me/+-5xC1wYcwollYWQ1) 进行技术交流。
 
 ## 目录
 ### 配置
@@ -21,12 +21,12 @@ GoFOFA是一款使用Go语言编写的命令行FOFA查询工具，他除了具�
 - [基础查询](#基础查询)
 
 - [查询实用功能](#查询实用功能)
-    - [批量搜索（支持txt上传进行批量查询，支持从管道输入查询）](#批量搜索)
-    - [指定URL拼接](#URL拼接)
-    - [随机从FOFA生成数据](#随机从FOFA生成数据)
-    - [证书拓线获取域名](#证书拓线查询域名)
-    - [icon多样查询](#Favicon图标查询)
-    - [大数据量下载](#大数据量下载)
+	- [批量搜索（支持txt上传进行批量查询，支持从管道输入查询）](#批量搜索)
+	- [指定URL拼接](#URL拼接)
+	- [随机从FOFA生成数据](#随机从FOFA生成数据)
+	- [证书拓线获取域名](#证书拓线查询域名)
+	- [icon多样查询](#Favicon图标查询)
+	- [大数据量下载](#大数据量下载)
 - [统计聚合接口](#统计聚合接口)
 - [HOST聚合接口](#HOST聚合接口)
 
@@ -69,7 +69,6 @@ VERSION:
 
 AUTHOR:
    LubyRuffy <lubyruffy@gmail.com>
-   Y13ze <y13ze@outlook.com>
 
 COMMANDS:
    search   fofa host search
@@ -685,7 +684,7 @@ $ fofa --version
 ```
 
 
-#### GoFOFA所有参数示例
+#### GoFOFA所有参数示例 
 
 | 参数        | 参数简写 | 默认值  | 简介                                              |
 | ----------- | -------- | ------- | ------------------------------------------------- |
