@@ -2,7 +2,7 @@
 
 
 
-[:blue_book: 英文 README]()   |   [:floppy_disk:  下载]()   |   [:orange_book:  FOFA API文档](https://fofa.info/api)
+[:blue_book: 英文 README](https://github.com/FofaInfo/GoFOFA/blob/69bf1b199f073289f673a028c154f9eb21d546ff/README.md)   |   [:floppy_disk:  下载]()   |   [:orange_book:  FOFA API文档](https://fofa.info/api)
 
 
 ## 项目背景
@@ -12,7 +12,7 @@ GoFOFA是一款使用Go语言编写的命令行FOFA查询工具，他除了具�
 我们在里面融合了很多FOFA工程师常用的调取小功能和数据处理的功能，如果您有更多的想法和需求，欢迎随时在issue中进行提交。
 
 
-关于GoFOFA的任何问题，欢迎加入我们的FOFA社区[微信社群](https://github.com/FofaInfo/GoFOFA/blob/74544c05a4fdd2267da35d73a7833a03f875b75e/Resource/wechat%20QRScan.jpg)或[Telegram]() 进行技术交流。
+关于GoFOFA的任何问题，欢迎加入我们的FOFA社区[微信社群](https://github.com/FofaInfo/GoFOFA/blob/74544c05a4fdd2267da35d73a7833a03f875b75e/Resource/wechat%20QRScan.jpg)或[Telegram](https://t.me/+-5xC1wYcwollYWQ1) 进行技术交流。
 
 ## 目录
 ### 配置
