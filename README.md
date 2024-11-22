@@ -290,6 +290,21 @@ $ fofa count port=80
 ### Query Function Module
 #### Batch Search
 
+Enable batch search through the `--batchType` parameter of the search module, and use it in conjunction with the `--template` parameter.
+
+```shell
+$ cat ip.txt
+106.75.95.206
+123.58.224.8
+$ fofa search -i ip.txt --batchType ip --template {}
+2024/11/22 11:26:09 not set fofa query, now in pipeline mode....
+2024/11/22 11:26:09 query fofa of: ip=106.75.95.206 || ip=123.58.224.8
+123.58.224.8,40544
+123.58.224.8,31497
+106.75.95.206,80
+......
+```
+
 #### URL Concatenation
 
 1. If you want to obtain a complete URL assembly, you can use the `--fixUrl` parameter:
