@@ -1,48 +1,48 @@
 # GoFOFA
 
-[:blue_book: 中文 README]()   |   [:floppy_disk: Download]()   |   [:orange_book: FOFA API Documentation](https://en.fofa.info/api)
+[:blue_book: 中文 README](https://github.com/FofaInfo/GoFOFA/blob/370e4ff07e2aaaacdbca868585870893a358a2aa/README_ZH.md)   |   [:floppy_disk: Download]()   |   [:orange_book: FOFA API Documentation](https://en.fofa.info/api)
 
 ## Background
 
-GoFOFA is a command-line FOFA query tool written in Go. Besides having basic FOFA API interface calling capabilities, it can also directly process data further. Through modular invocation, it allows for the transformation of data from metadata to valued data.
+GoFOFA is a command-line FOFA query tool written in Go. Besides having basic FOFA API interface calling capabilities, it can also directly process data further. Through modular invocation, it allows for the transformation of data from metadata to value data.
 
-We have integrated many small features commonly used by FOFA engineers for querying and data processing. If you have more ideas and needs, feel free to submit them in the issues.
+We have integrated many small features for querying and data processing. If you have more ideas and needs, feel free to submit them in the issues.
 
-For any questions about GoFOFA, welcome to join our FOFA community [WeChat Group](https://github.com/FofaInfo/GoFOFA/blob/74544c05a4fdd2267da35d73a7833a03f875b75e/Resource/wechat%20QRScan.jpg) or [Telegram]() for technical exchanges.
+For any questions about GoFOFA, welcome to join our FOFA community [WeChat Group](https://github.com/FofaInfo/GoFOFA/blob/74544c05a4fdd2267da35d73a7833a03f875b75e/Resource/wechat%20QRScan.jpg) or [Telegram](https://t.me/+-5xC1wYcwollYWQ1) for technical exchanges.
 
-## Directory
+## Content
 
 ### Configuration
 
-### Data Query Module
+### Query Module
 
-- **[Basic Query](#basic-query)**
+- [Basic Query](#basic-query)
 
-- **[Query Utility Functions](#query-utility-functions)**
-  - **[Batch Search (supports uploading a txt file for batch queries and input from a pipe)](#batch-search)**
-  - **[Specify URL Concatenation](#url-concatenation)**
-  - **[Randomly Generate Data from FOFA](#randomly-generate-data-from-fofa)**
-  - **[Extend Domains via Certificates](#extend-domains-via-certificates)**
-  - **[Favicon Icon Query](#favicon-icon-query)**
-  - **[Download Large Data Volumes](#download-large-data-volumes)**
+- [Query Function Module](#Query Function Module)
+  - [Batch Search (supports uploading a txt file for batch queries and input from a pipe)](#batch-search)
+  - [URL Concatenation](#URL Concatenation)
+  - [Randomly Generate Data from FOFA](#randomly-generate-data-from-fofa)
+  - [Discovery Domains via Certificates](#Discovery Domains via Certificates)
+  - [Favicon Discovery](#Favicon Discovery)
+  - [Download Large Data](#Download Large Data)
 
-- **[Statistics and Aggregation Interface](#statistics-and-aggregation-interface)**
-- **[HOST Aggregation Interface](#host-aggregation-interface)**
+- [Statistic Aggregation](#Statistic Aggregation)
+- [HOST Aggregation](#HOST Aggregation)
 
 ### Data Processing Module
 
-- **[URL Deduplication](#url-deduplication)**
-- **[Subdomain Deduplication](#subdomain-deduplication)**
-- **[Alive Check (supports input from a pipe in bulk)](#alive-check-supports-input-from-a-pipe-in-bulk)**
-- **[JS Rendering Recognition (supports input from a pipe in bulk)](#js-rendering-recognition-supports-input-from-a-pipe-in-bulk)**
-- **[Data Asset Classification](#data-asset-classification)**
+- [URL Deduplication](#url-deduplication)
+- [Wildcard DNS Deduplication](#Wildcard DNS Deduplication)
+- [Web Liveness Detection (supports input from a pipe in bulk)](#alive-check-supports-input-from-a-pipe-in-bulk)
+- [JS Rendering (supports input from a pipe in bulk)](#JS Rendering)
+- [Data Classification](#Data Classification)
 
 Note: Some data processing functions have necessary field requirements. Please ensure that the fields are included when retrieving data.
 
 ### Others
 
-- **[GoFOFA Version](#gofofa-version)**
-- **[Examples of All GoFOFA Parameters](#examples-of-all-gofofa-parameters)**
+- [GoFOFA Version](#gofofa-version)
+- [GoFOFA Parameters List](#GoFOFA Parameters List)
 
 ## Configuration
 
@@ -284,10 +284,10 @@ To count the number of FOFA query results, you can use the `count` module to sta
 $ fofa count port=80
 587055296
 ```
-### Practical Query Functions
+### Query Function Module
 #### Batch Search
 
-#### URL Assembly
+#### URL Concatenation
 
 1. If you want to obtain a complete URL assembly, you can use the `--fixUrl` parameter:
 
@@ -326,7 +326,7 @@ You can set the interval to 500ms and generate data every 500ms using the `--sle
 $ fofa random -s -1 --sleep 500
 ```
 
-#### Certificate-Based Domain Expansion Query
+#### Discovery Domains via Certificates
 
 The `domains` submodule is primarily used for the simplest form of expansion, leveraging certificates. You can use `--withCount` to count and obtain more data.
 
@@ -352,7 +352,7 @@ dwz.cn  410
 aipage.cn       406
 ```
 
-#### Favicon Icon Query
+#### Favicon Discovery
 
 Favicon icon query and hash value calculation.
 
@@ -398,7 +398,7 @@ $ fofa icon http://www.baidu.com
 -1588080585
 ```
 
-#### Large Data Download
+#### Download Large Data
 
 For downloading large amounts of data, use the `--batchSize` parameter to set the download quantity and complete data download and storage into a specified file with one click:
 
@@ -424,7 +424,7 @@ $ fofa dump --inFile queries.txt --outFile out.json -j
 2023/08/09 10:05:37 size: 499/499, 100.00%
 ```
 
-### Statistical Aggregation Interface
+### Statistic Aggregation
 
 Invoke the data statistics interface. The `stats` module can perform data statistics and other operations.
 
@@ -444,7 +444,7 @@ United Kingdom    223
 Singapore  205
 ```
 
-### HOST Aggregation Interface
+### HOST Aggregation
 
 Invoke the HOST aggregation interface. By using the Host module and inputting a domain name, you can obtain asset information from the host perspective:
 
@@ -496,7 +496,7 @@ $ fofa dedup -o data.csv -d ip -o dedup.csv
 $ fofa dedup -o data.csv -d ip,host,domain -o dedup.csv
 ```
 
-#### Wildcard Domain Deduplication
+#### Wildcard DNS Deduplication
 
 Required FOFA fields: ip, port, domain, title, fid
 
@@ -582,7 +582,7 @@ http://rw823.tcxzgh.org,true
 http://sb823.tcxzgh.org,true
 ```
 
-#### JS Rendering Recognition (Supports Batch Input from Pipelines)
+#### JS Rendering
 
 Required FOFA field: link. After completing the search task, separate rendering recognition is required.
 
@@ -621,7 +621,7 @@ http://www.valuegoodsbazaar.shop,srv258.sellvir.com — Coming Soon
 http://forecasting-preprod.pcasys.co.uk,- Sales Forecasting Tool (preprod)
 ```
 
-### Data Asset Classification Function
+### Data Classification
 
 The `fofa category` command allows you to process CSV file data using classification rules defined in the `config.yaml` file. You can set multiple classification rules based on protocol, title, domain, etc. For example, the following `config.yaml` file defines several classification rules:
 
@@ -662,7 +662,7 @@ Get GoFOFA Version
 $ fofa --version
 ```
 
-### GoFOFA Parameter Examples
+### GoFOFA Parameters List
 
 | Parameter   | Abbreviation | Default | Description                                           |
 | ----------- | ------------ | ------- | ----------------------------------------------------- |
