@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/FofaInfo/GoFOFA"
 	"github.com/FofaInfo/GoFOFA/pkg/outformats"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"

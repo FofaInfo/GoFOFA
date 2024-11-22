@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/FofaInfo/GoFOFA"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -71,6 +72,7 @@ var GlobalOptions = []cli.Flag{
 		Usage:       "format: <url>/?key=<key>&version=<v2>",
 		Destination: &fofaURL,
 	},
+
 	&cli.BoolFlag{
 		Name:  "verbose",
 		Usage: "print more information",
