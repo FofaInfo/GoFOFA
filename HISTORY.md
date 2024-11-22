@@ -1,23 +1,23 @@
-## v0.2.25 add jsRender command
+## v0.2.25 add jsRender mode and batchType in search mode
 
 -   jsRender use as: ```fofa jsRender -u http://baidu.com -t title [-o jsRender.csv]```
 -   jsRender of pipline use as: ```fofa search -f link -s 3 port=80 | fofa jsRender -t title```
 -   search of batchType use as: ```fofa search -i ip.txt --batchType ip --template {}```
 
-## v0.2.24 add category command
+## v0.2.24 add category mode
 
 -   category use as: ```fofa category -i input.csv [-o category.csv]```
 
-## v0.2.23 add headline in search command
+## v0.2.23 add headline in search mode
 
 -   search of headline use as: ```fofa search -f host,port --headline -o output.csv port=80```
 
-## v0.2.22 add filter and dedupHost in search command
+## v0.2.22 add filter and dedupHost in search mode
 
 -   search of filter use as: ```fofa search -f host,title,status_code -filter "status_code=='200'&&title!=''" host=baidu.com"```
 -   search of prefer-subdomain use as: ```fofa search -f host,type --dedupHost port=80```
 
-## v0.2.21 add noWildcard and checkActive in search command
+## v0.2.21 add noWildcard and checkActive in search mode
 
 -   search of no-wildcard use as: ```fofa search -f link --deWildcard 1 host=baidu.com"```
 -   search of checkActive use as: ```fofa search --checkActive 3 port=80```
@@ -29,7 +29,7 @@
 -   active of file use as: ```fofa active -i target.txt```
 -   active of pipline use as: ```fofa search -f link -s 3 port=80 | fofa active```
 
-## v0.2.19 add inFile in search command
+## v0.2.19 add inFile in search mode
 
 -   use as: ```fofa -f host -uniqByIP -outFile b.csv -rate 5 -inFile a.csv```
 -   fixed bug in pipeline mode raise `short write` error，support parallel write
