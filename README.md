@@ -18,31 +18,31 @@ For any questions about GoFOFA, welcome to join our FOFA community [WeChat Group
 
 - [Basic Query](#basic-query)
 
-- [Query Function Module](#Query Function Module)
+- [Query Function Module](#Query-Function-Module)
   - [Batch Search (supports uploading a txt file for batch queries and input from a pipe)](#batch-search)
-  - [URL Concatenation](#URL Concatenation)
+  - [URL Concatenation](#URL-Concatenation)
   - [Randomly Generate Data from FOFA](#randomly-generate-data-from-fofa)
-  - [Discovery Domains via Certificates](#Discovery Domains via Certificates)
-  - [Favicon Discovery](#Favicon Discovery)
-  - [Download Large Data](#Download Large Data)
+  - [Discovery Domains via Certificates](#Discovery-Domains-via-Certificates)
+  - [Favicon Discovery](#Favicon-Discovery)
+  - [Download Large Data](#Download-Large-Data)
 
-- [Statistic Aggregation](#Statistic Aggregation)
-- [HOST Aggregation](#HOST Aggregation)
+- [Statistic Aggregation](#Statistic-Aggregation)
+- [HOST Aggregation](#HOST-Aggregation)
 
 ### Data Processing Module
 
 - [URL Deduplication](#url-deduplication)
-- [Wildcard DNS Deduplication](#Wildcard DNS Deduplication)
+- [Wildcard DNS Deduplication](#Wildcard-DNS-Deduplication)
 - [Web Liveness Detection (supports input from a pipe in bulk)](#alive-check-supports-input-from-a-pipe-in-bulk)
-- [JS Rendering (supports input from a pipe in bulk)](#JS Rendering)
-- [Data Classification](#Data Classification)
+- [JS Rendering (supports input from a pipe in bulk)](#JS-Rendering)
+- [Data Classification](#Data-Classification)
 
 Note: Some data processing functions have necessary field requirements. Please ensure that the fields are included when retrieving data.
 
 ### Others
 
 - [GoFOFA Version](#gofofa-version)
-- [GoFOFA Parameters List](#GoFOFA Parameters List)
+- [GoFOFA Parameters List](#GoFOFA-Parameters-List)
 
 ## Configuration
 
