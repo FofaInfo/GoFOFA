@@ -642,7 +642,7 @@ Required FOFA field: link. After completing the search task, separate rendering 
 The `jsRender` module is used to perform JS rendering on URLs, supporting the selection of rendered HTML tags. Currently, it supports retrieving the `title` and `body` tags. Use `-url` to select a single target and `-tag` to select the rendered tag to retrieve:
 
 ```shell
-$ fofa jsRender -url http://baidu.com -tag title
+$ fofa jsRender -url http://baidu.com -tags title
 http://baidu.com,百度一下，你就知道
 ```
 
