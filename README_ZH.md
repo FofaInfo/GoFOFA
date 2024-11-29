@@ -647,7 +647,7 @@ http://sb823.tcxzgh.org,true
 jsRender模块用来对url进行js渲染，支持选择获取渲染后的html标签，目前支持获取标签title、body，可以使用`-url`来选择单个目标，`-tag`选择获取渲染后的标签：
 
 ```shell
-$ fofa jsRender -url http://baidu.com -tag title
+$ fofa jsRender -url http://baidu.com -tags title
 http://baidu.com,百度一下，你就知道
 ```
 
