@@ -582,11 +582,6 @@ http://huashunxinan.net
 可以使用```--checkActive 3```，`3`是超时重复次数（使用这个参数之后也会重新获取status_code数据）:
 
 ```shell
-$ fofa search -s 3 --checkActive port=80 
-2024/08/26 18:52:00 query fofa of: port=80
-216.92.244.44,80,true
-104.21.31.50,80,true
-182.247.239.68,80,true
 $ fofa search -s 3 --checkActive 3 --format=json port=80
 2024/08/26 18:53:33 query fofa of: port=80
 {"ip":"54.78.179.223","isActive":"false","port":"80"}
