@@ -577,11 +577,6 @@ Liveness detection can be conducted in two ways.
 Use `--checkActive 3`, where `3` is the number of retry attempts before timing out (this parameter also retrieves the `status_code` data):
 
 ```shell
-$ fofa search -s 3 --checkActive port=80 
-2024/08/26 18:52:00 query fofa of: port=80
-216.92.244.44,80,true
-104.21.31.50,80,true
-182.247.239.68,80,true
 $ fofa search -s 3 --checkActive 3 --format=json port=80
 2024/08/26 18:53:33 query fofa of: port=80
 {"ip":"54.78.179.223","isActive":"false","port":"80"}
@@ -597,19 +592,15 @@ $ fofa search -s 3 --checkActive 3 --format=xml port=80
 2. The second mode supports inputting URLs from a pipeline or a file. Use `--url` to obtain liveness information, with `true` indicating alive and `false` indicating dead.
 
 ```shell
-$ fofa active --url baidu.com,fofa.info,asdsadsasdas.com
+$ fofa active --url baidu.com
 baidu.com,true
-fofa.info,true
-asdsadsasdas.com,false
 ```
 
 Or more concisely:
 
 ```shell
-$ fofa active -u baidu.com,fofa.info,asdsadsasdas.com
+$ fofa active -u baidu.com
 baidu.com,true
-fofa.info,true
-asdsadsasdas.com,false
 ```
 
 You can also probe a file with each line containing a URL:
