@@ -597,19 +597,15 @@ $ fofa search -s 3 --checkActive 3 --format=xml port=80
 2. 第二种模式支持从管道输入或者从文件输入url，可以使用`--url`来获取存活信息，true为存活，false为不存活:
 
 ```shell
-$ fofa active --url baidu.com,fofa.info,asdsadsasdas.com
+$ fofa active --url baidu.com
 baidu.com,true
-fofa.info,true
-asdsadsasdas.com,false
 ```
 
 或者可以更简洁一些:
 
 ```shell
-$ fofa active -u baidu.com,fofa.info,asdsadsasdas.com
+$ fofa active -u baidu.com
 baidu.com,true
-fofa.info,true
-asdsadsasdas.com,false
 ```
 
 还可以通过对一个每行为一个url的文件进行探测:
