@@ -99,6 +99,12 @@ var dumpCmd = &cli.Command{
 			Usage:       "batch query, can be ip/domain",
 			Destination: &batchType,
 		},
+		&cli.BoolFlag{
+			Name:        "headline",
+			Value:       false,
+			Usage:       "add headline for csv",
+			Destination: &headline,
+		},
 	},
 	Action: DumpAction,
 }
@@ -168,6 +174,11 @@ func DumpAction(ctx *cli.Context) error {
 		return errors.New("fofa fields cannot be empty")
 	}
 
+	// headline只允许在format=csv的情况下使用
+	if headline && format != "csv" && len(outFile) > 0 {
+		return errors.New("headline param is only allowed if format is csv, outFile not be empty")
+	}
+
 	// batchType检验
 	if batchType != "" && batchType != "ip" && batchType != "domain" {
 		return errors.New("batchType param has to be one of ip/domain")
@@ -211,6 +222,14 @@ func DumpAction(ctx *cli.Context) error {
 			writer = outformats.NewXMLWriter(outTo, fields)
 		default:
 			return fmt.Errorf("unknown format: %s", format)
+		}
+	}
+
+	if headline && format == "csv" && len(outFile) > 0 {
+		// 写入表头
+		err := writer.WriteAll([][]string{fields})
+		if err != nil {
+			return err
 		}
 	}
 

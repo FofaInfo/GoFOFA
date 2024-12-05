@@ -1,3 +1,8 @@
+## v0.2.26 update jsRender mode and headline in dump mode
+
+-   update jsRender deadline
+-   dump of headline use as: ```fofa dump -f host,port --headline -o output.csv port=80```
+
 ## v0.2.25 add jsRender mode and batchType in dump mode
 
 -   jsRender use as: ```fofa jsRender -u http://baidu.com -t title [-o jsRender.csv]```

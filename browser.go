@@ -106,83 +106,99 @@ func (wp *WorkerBrowser) findNodeText(n *html.Node, tag string) string {
 }
 
 func (wp *WorkerBrowser) renderScan(url string) (string, error) {
-	dev := devices.Device{
-		Title:          "Laptop with MDPI screen",
-		Capabilities:   []string{},
-		UserAgent:      `Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36`,
-		AcceptLanguage: "zh-CN,zh;q=0.9,en;q=0.8",
-		Screen: devices.Screen{
-			DevicePixelRatio: 1,
-			Horizontal: devices.ScreenSize{
-				Width:  1280,
-				Height: 800,
-			},
-			Vertical: devices.ScreenSize{
-				Width:  800,
-				Height: 1280,
-			},
-		},
-	}
+	const maxRetries = 3
+	const retryDelay = 5 * time.Second
+	var lastErr error
 
-	l := launcher.New().
-		Headless(true).
-		Devtools(true)
-	defer l.Cleanup()
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		bodyHTML, err := func() (string, error) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			dev := devices.Device{
+				Title:          "Laptop with MDPI screen",
+				Capabilities:   []string{},
+				UserAgent:      `Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36`,
+				AcceptLanguage: "zh-CN,zh;q=0.9,en;q=0.8",
+				Screen: devices.Screen{
+					DevicePixelRatio: 1,
+					Horizontal: devices.ScreenSize{
+						Width:  1280,
+						Height: 800,
+					},
+					Vertical: devices.ScreenSize{
+						Width:  800,
+						Height: 1280,
+					},
+				},
+			}
 
-	l.Set("disable-web-security")
-	l.Set("allow-running-insecure-content")
-	l.Set("--ignore-certificate-errors")
-	l.Set("disable-notifications", "true")
+			l := launcher.New().
+				Headless(true).
+				Devtools(true)
+			defer l.Cleanup()
 
-	lurl := l.MustLaunch()
+			l.Set("disable-web-security")
+			l.Set("allow-running-insecure-content")
+			l.Set("--ignore-certificate-errors")
+			l.Set("disable-notifications", "true")
 
-	b := rod.New().ControlURL(lurl).
-		DefaultDevice(dev).
-		Timeout(10 * time.Second).
-		Trace(true).
-		MustConnect()
-	defer b.MustClose()
+			lurl := l.MustLaunch()
 
-	// 设置页面加载超时
-	page := b.MustPage()
-	defer page.MustClose()
+			b := rod.New().ControlURL(lurl).
+				DefaultDevice(dev).
+				Timeout(10 * time.Second).
+				Trace(false).
+				MustConnect()
+			defer b.MustClose()
 
-	// 创建上下文和取消函数
-	ctx, cancel := context.WithCancel(context.Background())
+			page := b.MustPage().Context(ctx)
+			defer page.MustClose()
 
-	// 启动协程监听浏览器弹窗事件
-	go func() {
-		page.EachEvent(func(e *proto.PageJavascriptDialogOpening) {
-			_ = proto.PageHandleJavaScriptDialog{Accept: false, PromptText: ""}.Call(page)
-		})()
+			// 启动协程监听浏览器弹窗事件
+			go func() {
+				page.EachEvent(func(e *proto.PageJavascriptDialogOpening) {
+					_ = proto.PageHandleJavaScriptDialog{Accept: false, PromptText: ""}.Call(page)
+				})()
 
-		// 通过select监听上下文取消信号
-		select {
-		case <-ctx.Done():
-			//log.Println("监听结束，协程退出")
-			return
+				select {
+				case <-ctx.Done():
+					return
+				}
+			}()
+
+			if err := page.Navigate(url); err != nil {
+				return "", fmt.Errorf("navigation error: %v", err)
+			}
+
+			if err := page.WaitLoad(); err != nil {
+				return "", fmt.Errorf("page load error: %v", err)
+			}
+
+			time.Sleep(3 * time.Second)
+
+			// 获取页面的 HTML 内容
+			body, err := page.Element("html")
+			if err != nil {
+				return "", fmt.Errorf("not find html element: %v", err)
+			}
+
+			bodyHtml, err := body.HTML()
+			if err != nil {
+				return "", fmt.Errorf("failed to get html content: %v", err)
+			}
+
+			return bodyHtml, nil
+		}()
+
+		if err == nil && bodyHTML != "" {
+			return bodyHTML, nil
 		}
-	}()
 
-	defer cancel()
-	//go page.EachEvent(func(e *proto.PageJavascriptDialogOpening) {
-	//	_ = proto.PageHandleJavaScriptDialog{Accept: false, PromptText: ""}.Call(page)
-	//})()
+		lastErr = err
+		log.Printf("Attempt %d failed: %v", attempt, lastErr)
+		time.Sleep(retryDelay)
 
-	page.MustNavigate(url).Timeout(60 * time.Second)
-
-	time.Sleep(5 * time.Second)
-
-	// 获取页面的 HTML 内容
-	body, err := page.Element("html")
-	if err != nil {
-		return "", fmt.Errorf("not find html element: %v", err)
 	}
 
-	bodyHtml, err := body.HTML()
-	if err != nil {
-		return "", fmt.Errorf("failed to get html content: %v", err)
-	}
-
-	return bodyHtml, nil
+	return "", fmt.Errorf("all attempts failed: %v", lastErr)
 }
