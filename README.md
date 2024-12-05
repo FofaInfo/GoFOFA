@@ -2,7 +2,7 @@
 
 [![Latest release](https://img.shields.io/github/v/release/FofaInfo/GoFOFA)](https://github.com/FofaInfo/GoFOFA/releases/latest)![GitHub Release Date](https://img.shields.io/github/release-date/FofaInfo/GoFOFA)![GitHub All Releases](https://img.shields.io/github/downloads/FofaInfo/GoFOFA/total)[![GitHub issues](https://img.shields.io/github/issues/FofaInfo/GoFOFA)](https://github.com/FofaInfo/GoFOFA/issues)
 
-[:blue_book: 中文 README](https://github.com/FofaInfo/GoFOFA/blob/main/README_ZH.md)   |   [:floppy_disk: Download](https://github.com/FofaInfo/GoFOFA/releases/tag/v0.2.25)   |   [:orange_book: FOFA API Documentation](https://en.fofa.info/api)
+[:blue_book: 中文 README](https://github.com/FofaInfo/GoFOFA/blob/main/README_ZH.md)   |   [:floppy_disk: Download](https://github.com/FofaInfo/GoFOFA/releases)   |   [:orange_book: FOFA API Documentation](https://en.fofa.info/api)
 
 ## Background
 
@@ -65,7 +65,7 @@ USAGE:
    fofa [global options] command [command options] [arguments...]
 
 VERSION:
-   v0.2.25
+   v0.2.26
 
 AUTHOR:
    LubyRuffy <lubyruffy@gmail.com>
@@ -88,7 +88,7 @@ COMMANDS:
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --fofaURL value, -u value  format: <url>/?key=<key>&version=<v2> (default: "https://fofa.info/?key=your_key&version=v1")
+   --fofaURL value, -u value  format: <url>/?email=&key=<key>&version=<v2> (default: "https://fofa.info/?key=your_key&version=v1")
    --verbose                  print more information (default: false)
    --accountDebug             print account in error log (default: false)
    --help, -h                 show help (default: false)
