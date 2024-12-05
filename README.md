@@ -59,7 +59,7 @@ $ go install github.com/FofaInfo/GoFOFA/cmd/fofa@latest
 ```
 $ fofa
 NAME:
-   fofa - fofa client on Go v0.2.25, commit none, built at unknown
+   fofa - fofa client on Go v0.2.26, commit none, built at unknown
 
 USAGE:
    fofa [global options] command [command options] [arguments...]
