@@ -32,7 +32,7 @@ query fofa of: ip=1.1.1.1
 1.1.1.1,8880
 ```
 
-GoFOFA拥有非常丰富的功能，查看功能使用手册和安装指南[请点击此处]()。
+GoFOFA拥有非常丰富的功能，查看功能使用手册和安装指南[请点击此处](https://github.com/FofaInfo/GoFOFA/blob/main/User_guide_ZH.md)。
 
 
 
