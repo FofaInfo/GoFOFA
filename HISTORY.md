@@ -1,3 +1,11 @@
+## v0.2.29 add predefined field whitelist validation and parallel processing for dump
+
+-   create official field whitelists (ValidFieldsAll and ValidFieldsNext) in fields.go.
+-   add validation logic (ValidateFieldsAll, ValidateFieldsNext) and integrated it into the search, dump, and random commands.
+-   enhance the `dump` command with a worker pool for concurrency and thread-safe data writing mechanics.
+-   include comprehensive unit test coverage for the validation and concurrency logic in fields_test.go and dump_test.go.
+-   update README.md and README_ZH.md to natively reference the official FOFA API documentation URLs for valid fields.
+
 ## v0.2.28 fix dedup mode
 
 -   fix dedup of multiple fields to remove duplicates 
