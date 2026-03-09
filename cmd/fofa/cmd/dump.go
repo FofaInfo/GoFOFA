@@ -2,16 +2,20 @@ package cmd
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
-	"github.com/FofaInfo/GoFOFA"
-	"github.com/FofaInfo/GoFOFA/pkg/outformats"
-	"github.com/sirupsen/logrus"
-	"github.com/urfave/cli/v2"
 	"io"
 	"log"
 	"os"
 	"strings"
+	"sync"
+
+	gofofa "github.com/FofaInfo/GoFOFA"
+	"github.com/FofaInfo/GoFOFA/pkg/outformats"
+	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
+	"golang.org/x/time/rate"
 )
 
 var (
@@ -112,6 +116,18 @@ var dumpCmd = &cli.Command{
 			Usage:       "use custom fields",
 			Destination: &customFields,
 		},
+		&cli.IntFlag{
+			Name:        "workers",
+			Value:       1,
+			Usage:       "number of workers",
+			Destination: &workers,
+		},
+		&cli.IntFlag{
+			Name:        "rate",
+			Value:       2,
+			Usage:       "fofa query per second",
+			Destination: &ratePerSecond,
+		},
 	},
 	Action: DumpAction,
 }
@@ -171,6 +187,14 @@ func DumpAction(ctx *cli.Context) error {
 		if err = scanner.Err(); err != nil {
 			log.Fatal(err)
 		}
+
+		// 默认workers提升到10，rate提升到2
+		if !ctx.IsSet("workers") {
+			workers = 10
+		}
+		if !ctx.IsSet("rate") {
+			ratePerSecond = 2
+		}
 	}
 
 	if len(queries) == 0 {
@@ -188,6 +212,11 @@ func DumpAction(ctx *cli.Context) error {
 	fields := strings.Split(fieldString, ",")
 	if len(fields) == 0 {
 		return errors.New("fofa fields cannot be empty")
+	}
+
+	// 字段白名单前置强校验 (使用 ValidateFieldsNext)
+	if err := gofofa.ValidateFieldsNext(fields); err != nil {
+		return err
 	}
 
 	// headline只允许在format=csv的情况下使用
@@ -249,26 +278,52 @@ func DumpAction(ctx *cli.Context) error {
 	}
 
 	// do search
-	for _, query := range queries {
-		log.Println("dump data of query:", query)
+	var locker sync.Mutex
+	wg := sync.WaitGroup{}
+	queriesChan := make(chan string, len(queries))
+	limiter := rate.NewLimiter(rate.Limit(ratePerSecond), 5)
 
-		fetchedSize := 0
-		err := fofaCli.DumpSearch(query, size, batchSize, fields, func(res [][]string, allSize int) (err error) {
-			fetchedSize += len(res)
-			log.Printf("size: %d/%d, %.2f%%", fetchedSize, allSize, 100*float32(fetchedSize)/float32(allSize))
-			// output
-			err = writer.WriteAll(res)
-			return err
-		}, gofofa.SearchOptions{
-			FixUrl:    fixUrl,
-			UrlPrefix: urlPrefix,
-			Full:      full,
-		})
-		if err != nil {
-			log.Println("fetch error:", err)
-			//return err
+	worker := func(qChan <-chan string, wg *sync.WaitGroup) {
+		for query := range qChan {
+			if err := limiter.Wait(context.Background()); err != nil {
+				fmt.Println("Error: ", err)
+			}
+			log.Println("dump data of query:", query)
+
+			fetchedSize := 0
+			err := fofaCli.DumpSearch(query, size, batchSize, fields, func(res [][]string, allSize int) (err error) {
+				fetchedSize += len(res)
+				log.Printf("size: %d/%d, %.2f%% for query: %s", fetchedSize, allSize, 100*float32(fetchedSize)/float32(allSize), query)
+				// output
+				locker.Lock()
+				defer locker.Unlock()
+				err = writer.WriteAll(res)
+				if err == nil {
+					writer.Flush()
+				}
+				return err
+			}, gofofa.SearchOptions{
+				FixUrl:    fixUrl,
+				UrlPrefix: urlPrefix,
+				Full:      full,
+			})
+			if err != nil {
+				log.Printf("fetch error for query %s: %v\n", query, err)
+			}
+			wg.Done()
 		}
 	}
+
+	for w := 0; w < workers; w++ {
+		go worker(queriesChan, &wg)
+	}
+
+	for _, query := range queries {
+		wg.Add(1)
+		queriesChan <- query
+	}
+	close(queriesChan)
+	wg.Wait()
 
 	return nil
 }

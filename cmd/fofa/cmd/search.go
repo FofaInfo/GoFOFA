@@ -5,16 +5,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/FofaInfo/GoFOFA"
-	"github.com/FofaInfo/GoFOFA/pkg/outformats"
-	"github.com/sirupsen/logrus"
-	"github.com/urfave/cli/v2"
-	"golang.org/x/time/rate"
 	"io"
 	"log"
 	"os"
 	"strings"
 	"sync"
+
+	gofofa "github.com/FofaInfo/GoFOFA"
+	"github.com/FofaInfo/GoFOFA/pkg/outformats"
+	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
+	"golang.org/x/time/rate"
 )
 
 var (
@@ -271,6 +272,11 @@ func SearchAction(ctx *cli.Context) error {
 	fields := strings.Split(fieldString, ",")
 	if len(fields) == 0 {
 		return errors.New("fofa fields cannot be empty")
+	}
+
+	// 字段白名单前置强校验 (使用 ValidateFieldsAll)
+	if err := gofofa.ValidateFieldsAll(fields); err != nil {
+		return err
 	}
 
 	// headline只允许在format=csv的情况下使用

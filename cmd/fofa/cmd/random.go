@@ -3,14 +3,15 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github.com/FofaInfo/GoFOFA"
-	"github.com/FofaInfo/GoFOFA/pkg/outformats"
-	"github.com/sirupsen/logrus"
-	"github.com/urfave/cli/v2"
 	"math/rand"
 	"os"
 	"strings"
 	"time"
+
+	gofofa "github.com/FofaInfo/GoFOFA"
+	"github.com/FofaInfo/GoFOFA/pkg/outformats"
+	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
 )
 
 var (
@@ -98,6 +99,12 @@ func randomAction(ctx *cli.Context) error {
 	if len(fields) == 0 {
 		return errors.New("fofa fields cannot be empty")
 	}
+
+	// 字段白名单前置强校验 (使用 ValidateFieldsAll)
+	if err := gofofa.ValidateFieldsAll(fields); err != nil {
+		return err
+	}
+
 	hostIndex := -1
 	if ctx.Bool("verbose") {
 		if !hashField(fields, "host") {
