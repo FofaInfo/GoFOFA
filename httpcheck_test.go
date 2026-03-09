@@ -1,8 +1,9 @@
 package gofofa
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCheckActive(t *testing.T) {
@@ -28,7 +29,7 @@ func TestCheckActive(t *testing.T) {
 		},
 		{
 			name:          "Domain base",
-			fixedHostInfo: "baidu.com",
+			fixedHostInfo: "www.baidu.com",
 			want:          HttpResponse{IsActive: true, StatusCode: "200"},
 		},
 		{
