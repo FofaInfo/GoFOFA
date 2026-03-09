@@ -4,25 +4,29 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/go-rod/rod"
-	"github.com/go-rod/rod/lib/devices"
-	"github.com/go-rod/rod/lib/launcher"
-	"github.com/go-rod/rod/lib/proto"
-	"golang.org/x/net/html"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/devices"
+	"github.com/go-rod/rod/lib/launcher"
+	flags "github.com/go-rod/rod/lib/launcher/flags"
+	"github.com/go-rod/rod/lib/proto"
+	"golang.org/x/net/html"
 )
 
 type WorkerBrowser struct {
-	Url   string
-	Retry int
+	Url          string
+	Retry        int
+	LauncherArgs []string
 }
 
 func NewWorkerBrowser(url string, retry int) *WorkerBrowser {
 	return &WorkerBrowser{
-		Url:   url,
-		Retry: retry,
+		Url:          url,
+		Retry:        retry,
+		LauncherArgs: []string{},
 	}
 }
 
@@ -142,6 +146,10 @@ func (wp *WorkerBrowser) renderScan(url string) (string, error) {
 			l.Set("allow-running-insecure-content")
 			l.Set("--ignore-certificate-errors")
 			l.Set("disable-notifications", "true")
+
+			for _, arg := range wp.LauncherArgs {
+				l.Set(flags.Flag(arg), "true")
+			}
 
 			lurl := l.MustLaunch()
 

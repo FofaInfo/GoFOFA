@@ -2,11 +2,12 @@ package gofofa
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func runningTime() func() {
@@ -80,18 +81,21 @@ func TestWorkerBrowser_Run(t *testing.T) {
 
 	// 错误url情况
 	b := NewWorkerBrowser("", 3)
+	b.LauncherArgs = []string{"no-sandbox"}
 	body, err := b.Run()
 	assert.NotNil(t, err)
 	assert.Nil(t, body["body"])
 
 	// 常规js渲染
 	b = NewWorkerBrowser(ts.URL+"/js/normal", 3)
+	b.LauncherArgs = []string{"no-sandbox"}
 	body, err = b.Run()
 	assert.Nil(t, err)
 	assert.Equal(t, "Updated Title", body["title"])
 
 	// 页面跳转
 	b = NewWorkerBrowser(ts.URL+"/js/redirect", 3)
+	b.LauncherArgs = []string{"no-sandbox"}
 	body, err = b.Run()
 	assert.Nil(t, err)
 	assert.Equal(t, "Successfully Title", body["title"])
