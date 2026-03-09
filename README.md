@@ -136,10 +136,10 @@ categories:
 
 | Parameter   | Abbreviation | Default Value | Description                                               |
 |-------------|--------------|---------------|-----------------------------------------------------------|
-| fields      | f            | ip,port       | Fields returned by FOFA. [Learn More](https://fofa.info/vip) |
+| fields      | f            | ip,port       | Fields returned by FOFA, valid fields refer to https://en.fofa.info/api |
 | format      |              | csv           | Output format: csv/json/xml                               |
 | outFile     | o            |               | Output file. If not set, prints to terminal               |
-| size        | s            | 100           | Query size. Maximum is 10,000, subject to `deductMode`    |
+| size        | s            | 100           | Query size. Maximum is 10,000, subject to `deductMode` *1*2 |
 | deductMode  |              |               | Consumption of f-points. If not set, uses max free query limit |
 | fixUrl      |              | false         | Combines URLs (e.g., 1.1.1.1,80 becomes http://1.1.1.1)   |
 | urlPrefix   |              | http://       | URL prefix                                                |
@@ -156,21 +156,29 @@ categories:
 | headline    |              | false         | Outputs CSV headers. Available only when format is CSV    |
 | help        | h            | false         | Displays usage information                                |
 
+*1: When the query contains `cert` and `banner`, the maximum results size setting is 2000 per page.
+*2: When the query contains `body`, the maximum results size setting is 500 per page.
+
 ### `dump`
 
 | Parameter   | Abbreviation | Default Value | Description                                               |
 |-------------|--------------|---------------|-----------------------------------------------------------|
-| fields      | f            | ip,port       | Fields returned by FOFA. [Learn More](https://fofa.info/vip) |
+| fields      | f            | ip,port       | Fields returned by FOFA, valid fields refer to https://en.fofa.info/api, for dump command refer to https://en.fofa.info/api/batches_pages |
 | format      |              | csv           | Output format: csv/json/xml                               |
 | outFile     | o            |               | Output file. If not set, prints to terminal               |
 | inFile      | i            |               | Input file. If not set, reads from pipeline input         |
-| size        | s            | 100           | Query size. No upper limit but consumes f-points or free query quota |
+| size        | s            | 100           | Query size. No upper limit but consumes f-points or free quota *1*2 |
 | fixUrl      |              | false         | Combines URLs (e.g., 1.1.1.1,80 becomes http://1.1.1.1)   |
 | urlPrefix   |              | http://       | URL prefix                                                |
 | full        |              | false         | Retrieves full data                                       |
 | batchSize   | bs           | 1000          | Number of records to fetch per batch                     |
 | batchType   | bt           |               | Batch query type: ip/domain                              |
+| workers     |              | 10            | Number of threads, defaults to 10 when using -i           |
+| rate        |              | 2             | Query rate per second                                     |
 | help        | h            | false         | Displays usage information                                |
+
+*1: When the query contains `cert` and `banner`, the maximum results size setting is 2000 per page.
+*2: When the query contains `body`, the maximum results size setting is 500 per page.
 
 ### `jsRender`
 
@@ -254,12 +262,15 @@ categories:
 |-------------|--------------|--------------------------------------|------------------------------------------|
 | fields      | f            | ip,port,host,header,title,server,lastupdatetime | Fields returned by FOFA. [Learn More](https://en.fofa.info/vip) |
 | format      |              | json                                | Output format: csv/json/xml              |
-| size        | s            | 1                                   | Query count. `-1` for infinite queries   |
+| size        | s            | 1                                   | Query count. `-1` for infinite queries *1*2 |
 | sleep       |              | 1000                                | Interval between queries in milliseconds |
 | fixUrl      |              | false                               | Combines URLs (e.g., 1.1.1.1,80 becomes http://1.1.1.1) |
 | urlPrefix   |              | http://                             | URL prefix                              |
 | full        |              | false                               | Retrieves full data                     |
 | help        | h            | false                               | Displays usage information               |
+
+*1: When the query contains `cert` and `banner`, the maximum results size setting is 2000 per page.
+*2: When the query contains `body`, the maximum results size setting is 500 per page.
 
 ### `count`
 

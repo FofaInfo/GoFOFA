@@ -139,10 +139,10 @@ categories:
 
 | 参数        | 参数简写 | 默认值  | 简介                                              |
 | ----------- | -------- | ------- | ------------------------------------------------- |
-| fields      | f        | ip,port | FOFA返回的字段选择，[了解更多](https://fofa.info/vip) |                             
+| fields      | f        | ip,port | FOFA返回的字段选择，有效字段参考https://fofa.info/api |                             
 | format      |          | csv     | 输出格式，可以为csv/json/xml                      |
 | outFile     | o        |         | 输出文件，如果不设置则终端打印                    |
-| size        | s        | 100     | 查询数量，最大为10000，受deductMode参数限制       |
+| size        | s        | 100     | 查询数量，最大为10000，受deductMode参数限制 *1*2  |
 | deductMode  |          |         | 消费f点数，不设置则读取用户最大免费数量           |
 | fixUrl      |          | false   | 是否组合url，例如1.1.1.1,80组合为http://1.1.1.1   |
 | urlPrefix   |          | http:// | url前缀                                           |
@@ -159,21 +159,29 @@ categories:
 | headline    |          | false   | 是否输出csv头，只有在format为csv时可用            |
 | help        | h        | false   | 使用方法                                          |
 
+*1：当获取字段包含 `cert` 和 `banner` 时，单次查询 size 最大支持 2000。
+*2：当获取字段包含 `body` 时，单次查询 size 最大支持 500。
+
 ### dump
 
 | 参数      | 参数简写 | 默认值  | 简介                                                  |
 | --------- | -------- | ------- | ----------------------------------------------------- |
-| fields    | f        | ip,port | FOFA返回的字段选择，[了解更多](https://fofa.info/vip) |
+| fields    | f        | ip,port | FOFA返回的字段选择，有效字段参考https://fofa.info/api，dump的参考https://fofa.info/api/batches_pages |
 | format    |          | csv     | 输出格式，可以为csv/json/xml                          |
 | outFile   | o        |         | 输出文件，如果不设置则终端打印                        |
 | inFile    | i        |         | 输入文件，如果不设置则读取管道输入                    |
-| size      | s        | 100     | 查询数量，无上限，但要扣除f点或免费数量               |
+| size      | s        | 100     | 查询数量，无上限，但要扣除f点或免费数量 *1*2          |
 | fixUrl    |          | false   | 是否组合url，例如1.1.1.1,80组合为http://1.1.1.1       |
 | urlPrefix |          | http:// | url前缀                                               |
 | full      |          | false   | 是否调取全量数据                                      |
 | batchSize | bs       | 1000    | 每次拉取多少条数据                                    |
 | batchType | bt       |         | 批量查询，可以为ip/domain                             |
+| workers   |          | 10      | 线程数量，当使用-i时默认10                            |
+| rate      |          | 2       | 每秒查询次数                                          |
 | help      | h        | false   | 使用方法                                              |
+
+*1：当获取字段包含 `cert` 和 `banner` 时，单次查询 size 最大支持 2000。
+*2：当获取字段包含 `body` 时，单次查询 size 最大支持 500。
 
 ### jsRender
 
@@ -256,12 +264,15 @@ categories:
 | --------- | -------- | ----------------------------------------------- | ----------------------------------------------------- |
 | fields    | f        | ip,port,host,header,title,server,lastupdatetime | FOFA返回的字段选择，[了解更多](https://fofa.info/vip) |
 | format    |          | json                                            | 输出格式，可以为csv/json/xml                          |
-| size      | s        | 1                                               | 查询次数，-1表示永远不停                              |
+| size      | s        | 1                                               | 查询次数，-1表示永远不停 *1*2                         |
 | sleep     |          | 1000                                            | 获取间隔，单位ms                                      |
 | fixUrl    |          | false                                           | 是否组合url，例如1.1.1.1,80组合为http://1.1.1.1       |
 | urlPrefix |          | http://                                         | url前缀                                               |
 | full      |          | false                                           | 是否调取全量数据                                      |
 | help      | h        | false                                           | 使用方法                                              |
+
+*1：当获取字段包含 `cert` 和 `banner` 时，单次查询 size 最大支持 2000。
+*2：当获取字段包含 `body` 时，单次查询 size 最大支持 500。
 
 ### count
 
