@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 )
@@ -202,5 +203,25 @@ func TestFetchNetworkErrorDoesNotMutateCredentials(t *testing.T) {
 	}
 	if secondRequest.URL.Query().Get("email") != "account@example.com" || secondRequest.URL.Query().Get("key") != "secret-key" {
 		t.Fatalf("second request credentials changed: %s", secondRequest.URL)
+	}
+}
+
+func TestBuildURLOmitsEmptyEmail(t *testing.T) {
+	client := &Client{
+		Server:     "https://fofa.info",
+		APIVersion: "v1",
+		Key:        "secret-key",
+	}
+
+	requestURL, err := url.Parse(client.buildURL("search/all", nil))
+	if err != nil {
+		t.Fatalf("parse request URL: %v", err)
+	}
+	query := requestURL.Query()
+	if query.Has("email") {
+		t.Fatalf("request URL contains empty email: %s", requestURL)
+	}
+	if query.Get("key") != "secret-key" {
+		t.Fatalf("request URL key = %q, want secret-key", query.Get("key"))
 	}
 }

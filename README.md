@@ -21,7 +21,7 @@ The official library doesn't has unittests,  之前官方的库功能不全，�
 ```
 ~ go install github.com/LubyRuffy/gofofa/cmd/fofa@latest
 ~ fofa
-~ FOFA_CLIENT_URL='https://fofa.info/?email=xxx@gmail.com&key=xxx' fofa search port=80
+~ FOFA_CLIENT_URL='https://fofa.info/?key=xxx' fofa search port=80
 ```
 
 ### Search
@@ -342,9 +342,8 @@ every 500ms generate one line, never stop
         -   ☑ fofaURL
         -   ☑ deductMode
     -   ☑ Envirement
-        -   ☑ FOFA_CLIENT_URL format: <url>/?email=\<email\>&key=\<key\>&version=\<v1\>
+        -   ☑ FOFA_CLIENT_URL format: <url>/?key=\<key\>&version=\<v1\> (email optional)
         -   ☑ FOFA_SERVER
-        -   ☑ FOFA_EMAIL
         -   ☑ FOFA_KEY
 -   ☐ Publish
     -   ☑ github

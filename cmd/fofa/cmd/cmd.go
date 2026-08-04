@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/FofaInfo/GoFOFA"
+	"github.com/LubyRuffy/gofofa"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -27,10 +27,6 @@ var GlobalCommands = []*cli.Command{
 	hostCmd,
 	dumpCmd,
 	domainsCmd,
-	activeCmd,
-	dedupCmd,
-	categoryCmd,
-	browserCmd,
 }
 
 // IsValidCommand valid command name
@@ -69,10 +65,9 @@ var GlobalOptions = []cli.Flag{
 		Name:        "fofaURL",
 		Aliases:     []string{"u"},
 		Value:       gofofa.FofaURLFromEnv(),
-		Usage:       "format: <url>/?email=&key=<key>&version=<v2>",
+		Usage:       "format: <url>/?key=<key>&version=<v2> (email optional)",
 		Destination: &fofaURL,
 	},
-
 	&cli.BoolFlag{
 		Name:  "verbose",
 		Usage: "print more information",

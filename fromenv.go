@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// env can set:FOFA_SERVER,FOFA_EMAIL,FOFA_KEY,FOFA_CLIENT_URL
+// env can set:FOFA_SERVER,FOFA_KEY,FOFA_CLIENT_URL; FOFA_EMAIL is optional for legacy configurations.
 // FOFA_CLIENT_URL > FOFA_SERVER
 func newClientFromEnv() (*Client, error) {
 	c := &Client{

@@ -16,11 +16,18 @@ import (
 )
 
 // params is key=>value for query, auto encoded with uri escape
+func (c *Client) credentialValues() url.Values {
+	values := url.Values{}
+	if c.Email != "" {
+		values.Set("email", c.Email)
+	}
+	values.Set("key", c.Key)
+	return values
+}
+
 func (c *Client) buildURL(apiURI string, params map[string]string) string {
 	fullURL := fmt.Sprintf("%s/api/%s/%s?", c.Server, c.APIVersion, apiURI)
-	ps := url.Values{}
-	ps.Set("email", c.Email)
-	ps.Set("key", c.Key)
+	ps := c.credentialValues()
 	for k, v := range params {
 		ps.Set(k, v)
 	}
@@ -113,7 +120,9 @@ func (c *Client) fetchBodyOnce(ctx context.Context, apiURI string, params map[st
 			// 替换账号明文信息
 			if e, ok := err.(*url.Error); ok {
 				redactedClient := *c
-				redactedClient.Email = "<email>"
+				if c.Email != "" {
+					redactedClient.Email = "<email>"
+				}
 				redactedClient.Key = "<key>"
 				e.URL = redactedClient.buildURL(apiURI, params)
 				err = e

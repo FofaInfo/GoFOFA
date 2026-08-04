@@ -2,9 +2,9 @@
 Package gofofa fofa client in Go
 
 env settings:
-- FOFA_CLIENT_URL full fofa connnection string, format: <url>/?email=<email>&key=<key>&version=<v2>
+- FOFA_CLIENT_URL full fofa connection string, format: <url>/?key=<key>&version=<v2>
 - FOFA_SERVER fofa server
-- FOFA_EMAIL fofa account email
+- FOFA_EMAIL optional legacy account email
 - FOFA_KEY fofa account key
 */
 package gofofa
@@ -70,7 +70,13 @@ func (c *Client) Update(configURL string) error {
 
 // URL generate fofa connection url string
 func (c *Client) URL() string {
-	return fmt.Sprintf("%s/?email=%s&key=%s&version=%s", c.Server, c.Email, c.Key, c.APIVersion)
+	params := url.Values{}
+	if c.Email != "" {
+		params.Set("email", c.Email)
+	}
+	params.Set("key", c.Key)
+	params.Set("version", c.APIVersion)
+	return fmt.Sprintf("%s/?%s", c.Server, params.Encode())
 }
 
 // GetContext 获取context，用于中止任务
@@ -85,7 +91,8 @@ func (c *Client) SetContext(ctx context.Context) {
 
 type ClientOption func(c *Client) error
 
-// WithURL configURL format: <url>/?email=<email>&key=<key>&version=<v2>&tlsdisabled=false&debuglevel=0
+// WithURL configURL format: <url>/?key=<key>&version=<v2>&tlsdisabled=false&debuglevel=0
+// The legacy email parameter is optional.
 func WithURL(configURL string) ClientOption {
 	return func(c *Client) error {
 		// merge from config
