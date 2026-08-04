@@ -398,6 +398,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestNewClientWithKeyOnly(t *testing.T) {
+	t.Setenv("FOFA_EMAIL", "legacy@example.com")
 	account := validAccounts[1]
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/v1/info/my" || r.URL.Query().Get("key") != account.Key || r.URL.Query().Has("email") {

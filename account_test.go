@@ -157,3 +157,18 @@ func TestClient_AccountInfo(t *testing.T) {
 	assert.Equal(t, 0, cli.Account.FCoin)
 	assert.Equal(t, -1, cli.freeSize())
 }
+
+func TestClient_AccountInfoReturnsErrorFlagWithoutMessage(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]interface{}{"error": true})
+	}))
+	defer server.Close()
+
+	client := &Client{
+		Server:     server.URL,
+		APIVersion: "v1",
+		httpClient: server.Client(),
+	}
+	_, err := client.AccountInfo()
+	assert.EqualError(t, err, "fofa account info failed")
+}

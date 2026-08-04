@@ -18,6 +18,7 @@ import (
 )
 
 const advancedQueryInterval = time.Second
+const fofaRateLimitStatus = 492
 
 type queryRateLimiter struct {
 	mu         sync.Mutex
@@ -215,7 +216,7 @@ func isQueryAPI(apiURI string) bool {
 }
 
 func isRateLimitResponse(statusCode int, body []byte) bool {
-	if statusCode == http.StatusTooManyRequests {
+	if statusCode == http.StatusTooManyRequests || statusCode == fofaRateLimitStatus {
 		return true
 	}
 

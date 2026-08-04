@@ -53,16 +53,20 @@ func (c *Client) Update(configURL string) error {
 	}
 
 	c.Server = u.Scheme + "://" + u.Host
-	if u.Query().Has("email") {
-		c.Email = u.Query().Get("email")
+	query := u.Query()
+	if query.Has("email") {
+		c.Email = query.Get("email")
 	}
 
-	if u.Query().Has("key") {
-		c.Key = u.Query().Get("key")
+	if query.Has("key") {
+		c.Key = query.Get("key")
+		if !query.Has("email") {
+			c.Email = ""
+		}
 	}
 
-	if u.Query().Has("version") {
-		c.APIVersion = u.Query().Get("version")
+	if query.Has("version") {
+		c.APIVersion = query.Get("version")
 	}
 
 	return nil
@@ -174,12 +178,11 @@ func NewClient(options ...ClientOption) (*Client, error) {
 	c.Account, err = c.AccountInfo()
 	if err != nil {
 		c.logger.Warnf("account invalid")
+		if c.Account.Error {
+			c.logger.Warnf("auth failed")
+			return c, fmt.Errorf("auth failed: '%s', make sure key is valid", c.Account.ErrMsg)
+		}
 		return c, err
-	}
-
-	if c.Account.Error {
-		c.logger.Warnf("auth failed")
-		return c, fmt.Errorf("auth failed: '%s', make sure key is valid", c.Account.ErrMsg)
 	}
 	c.queryLimiter = newQueryRateLimiter(queryInterval(c.Account))
 	if c.sharedRateLimit && c.queryLimiter.interval > 0 {

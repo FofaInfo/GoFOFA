@@ -140,6 +140,7 @@ func TestHostSearchRetriesRateLimitResponses(t *testing.T) {
 	}{
 		{name: "business error", statusCode: http.StatusOK},
 		{name: "http 429", statusCode: http.StatusTooManyRequests},
+		{name: "http 492", statusCode: fofaRateLimitStatus},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			calls := 0
@@ -298,8 +299,8 @@ func TestDumpSearchStopsWhenCursorDoesNotAdvance(t *testing.T) {
 	if calls != 2 {
 		t.Fatalf("search/next request count = %d, want 2", calls)
 	}
-	if callbackCalls != 2 {
-		t.Fatalf("callback count = %d, want 2 delivered pages", callbackCalls)
+	if callbackCalls != 1 {
+		t.Fatalf("callback count = %d, want only the non-stalled page", callbackCalls)
 	}
 }
 
@@ -333,8 +334,8 @@ func TestDumpSearchStopsWhenShortPageCursorDoesNotAdvance(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "cursor did not advance") {
 		t.Fatalf("error = %v, want cursor progress error", err)
 	}
-	if calls != 2 || callbackCalls != 2 {
-		t.Fatalf("calls=%d callbacks=%d, want two delivered pages", calls, callbackCalls)
+	if calls != 2 || callbackCalls != 1 {
+		t.Fatalf("calls=%d callbacks=%d, want one delivered page", calls, callbackCalls)
 	}
 }
 

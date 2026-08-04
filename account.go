@@ -1,6 +1,9 @@
 package gofofa
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"errors"
+)
 
 // DeductMode should deduct fcoin automatically or just use free limit
 type DeductMode int
@@ -66,6 +69,15 @@ func (ai AccountInfo) String() string {
 // AccountInfo fetch account info from fofa
 func (c *Client) AccountInfo() (ac AccountInfo, err error) {
 	err = c.Fetch("info/my", nil, &ac)
+	if err != nil {
+		return
+	}
+	if ac.Error {
+		if ac.ErrMsg != "" {
+			return ac, errors.New(ac.ErrMsg)
+		}
+		return ac, errors.New("fofa account info failed")
+	}
 	return
 }
 
