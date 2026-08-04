@@ -125,7 +125,12 @@ func BeforAction(context *cli.Context) error {
 	//	return nil
 	//}
 
-	fofaCli, err = gofofa.NewClient(gofofa.WithURL(fofaURL), gofofa.WithAccountDebug(accountDebug))
+	fofaCli, err = gofofa.NewClient(
+		gofofa.WithURL(fofaURL),
+		gofofa.WithAccountDebug(accountDebug),
+		gofofa.WithLogger(logrus.StandardLogger()),
+		gofofa.WithSharedRateLimit(true),
+	)
 	if err != nil {
 		return err
 	}

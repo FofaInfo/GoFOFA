@@ -2,29 +2,16 @@ package cmd
 
 import (
 	"bufio"
-	"context"
 	"errors"
 	"fmt"
+	"github.com/LubyRuffy/gofofa"
+	"github.com/LubyRuffy/gofofa/pkg/outformats"
+	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
 	"io"
 	"log"
 	"os"
 	"strings"
-	"sync"
-
-	gofofa "github.com/FofaInfo/GoFOFA"
-	"github.com/FofaInfo/GoFOFA/pkg/outformats"
-	"github.com/sirupsen/logrus"
-	"github.com/urfave/cli/v2"
-	"golang.org/x/time/rate"
-)
-
-var (
-	batchType string // batch query, can be ip/domain
-)
-
-const (
-	IPMax     = 100 // maximum number of splicing ips
-	DomainMax = 50  // maximum number of splicing domains
 )
 
 // dump subcommand
@@ -55,7 +42,7 @@ var dumpCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:        "outFile",
 			Aliases:     []string{"o"},
-			Usage:       "if not set, write to stdout",
+			Usage:       "if not set, wirte to stdout",
 			Destination: &outFile,
 		},
 		&cli.StringFlag{
@@ -96,64 +83,8 @@ var dumpCmd = &cli.Command{
 			Usage:       "the amount of data contained in each batch",
 			Destination: &batchSize,
 		},
-		&cli.StringFlag{
-			Name:        "batchType",
-			Aliases:     []string{"bt"},
-			Value:       "",
-			Usage:       "batch query, can be ip/domain",
-			Destination: &batchType,
-		},
-		&cli.BoolFlag{
-			Name:        "headline",
-			Value:       false,
-			Usage:       "add headline for csv",
-			Destination: &headline,
-		},
-		&cli.StringFlag{
-			Name:        "customFields",
-			Aliases:     []string{"cf"},
-			Value:       "",
-			Usage:       "use custom fields",
-			Destination: &customFields,
-		},
-		&cli.IntFlag{
-			Name:        "workers",
-			Value:       1,
-			Usage:       "number of workers",
-			Destination: &workers,
-		},
-		&cli.IntFlag{
-			Name:        "rate",
-			Value:       2,
-			Usage:       "fofa query per second",
-			Destination: &ratePerSecond,
-		},
 	},
 	Action: DumpAction,
-}
-
-func constructQuery(queryType string, queries []string) string {
-	var queryBuilder strings.Builder
-	for i, query := range queries {
-		if i > 0 {
-			queryBuilder.WriteString(" || ")
-		}
-		queryBuilder.WriteString(fmt.Sprintf("%s=%s", queryType, query))
-	}
-	return queryBuilder.String()
-}
-
-func batchProcess(queries []string, batchSize int, queryType string) []string {
-	var batchedQueries []string
-	for i := 0; i < len(queries); i += batchSize {
-		end := i + batchSize
-		if end > len(queries) {
-			end = len(queries)
-		}
-		batchedQuery := constructQuery(queryType, queries[i:end])
-		batchedQueries = append(batchedQueries, batchedQuery)
-	}
-	return batchedQueries
 }
 
 // DumpAction search action
@@ -177,9 +108,6 @@ func DumpAction(ctx *cli.Context) error {
 
 		// 逐行读取并打印
 		for scanner.Scan() {
-			if scanner.Text() == "" {
-				continue
-			}
 			queries = append(queries, scanner.Text())
 		}
 
@@ -187,58 +115,21 @@ func DumpAction(ctx *cli.Context) error {
 		if err = scanner.Err(); err != nil {
 			log.Fatal(err)
 		}
-
-		// 默认workers提升到10，rate提升到2
-		if !ctx.IsSet("workers") {
-			workers = 10
-		}
-		if !ctx.IsSet("rate") {
-			ratePerSecond = 2
-		}
 	}
 
 	if len(queries) == 0 {
 		return errors.New("fofa query cannot be empty, use args or -inFile")
 	}
-
-	var err error
-	if customFields != "" {
-		fieldString, err = getCustomFields(customFields)
-		if err != nil {
-			return fmt.Errorf("get custom fields error, %v", err)
-		}
-	}
-
 	fields := strings.Split(fieldString, ",")
 	if len(fields) == 0 {
 		return errors.New("fofa fields cannot be empty")
-	}
-
-	// 字段白名单前置强校验 (使用 ValidateFieldsNext)
-	if err := gofofa.ValidateFieldsNext(fields); err != nil {
-		return err
-	}
-
-	// headline只允许在format=csv的情况下使用
-	if headline && format != "csv" && len(outFile) > 0 {
-		return errors.New("headline param is only allowed if format is csv, outFile not be empty")
-	}
-
-	// batchType检验
-	if batchType != "" && batchType != "ip" && batchType != "domain" {
-		return errors.New("batchType param has to be one of ip/domain")
-	}
-
-	if batchType == "ip" {
-		queries = batchProcess(queries, IPMax, "ip")
-	} else if batchType == "domain" {
-		queries = batchProcess(queries, DomainMax, "domain")
 	}
 
 	// gen output
 	var outTo io.Writer
 	if len(outFile) > 0 {
 		var f *os.File
+		var err error
 		if f, err = os.Create(outFile); err != nil {
 			return fmt.Errorf("create outFile %s failed: %w", outFile, err)
 		}
@@ -269,61 +160,27 @@ func DumpAction(ctx *cli.Context) error {
 		}
 	}
 
-	if headline && format == "csv" && len(outFile) > 0 {
-		// 写入表头
-		err := writer.WriteAll([][]string{fields})
+	// do search
+	for _, query := range queries {
+		log.Println("dump data of query:", query)
+
+		fetchedSize := 0
+		err := fofaCli.DumpSearch(query, size, batchSize, fields, func(res [][]string, allSize int) (err error) {
+			fetchedSize += len(res)
+			log.Printf("size: %d/%d, %.2f%%", fetchedSize, allSize, 100*float32(fetchedSize)/float32(allSize))
+			// output
+			err = writer.WriteAll(res)
+			return err
+		}, gofofa.SearchOptions{
+			FixUrl:    fixUrl,
+			UrlPrefix: urlPrefix,
+			Full:      full,
+		})
 		if err != nil {
+			log.Println("fetch error:", err)
 			return err
 		}
 	}
-
-	// do search
-	var locker sync.Mutex
-	wg := sync.WaitGroup{}
-	queriesChan := make(chan string, len(queries))
-	limiter := rate.NewLimiter(rate.Limit(ratePerSecond), 5)
-
-	worker := func(qChan <-chan string, wg *sync.WaitGroup) {
-		for query := range qChan {
-			if err := limiter.Wait(context.Background()); err != nil {
-				fmt.Println("Error: ", err)
-			}
-			log.Println("dump data of query:", query)
-
-			fetchedSize := 0
-			err := fofaCli.DumpSearch(query, size, batchSize, fields, func(res [][]string, allSize int) (err error) {
-				fetchedSize += len(res)
-				log.Printf("size: %d/%d, %.2f%% for query: %s", fetchedSize, allSize, 100*float32(fetchedSize)/float32(allSize), query)
-				// output
-				locker.Lock()
-				defer locker.Unlock()
-				err = writer.WriteAll(res)
-				if err == nil {
-					writer.Flush()
-				}
-				return err
-			}, gofofa.SearchOptions{
-				FixUrl:    fixUrl,
-				UrlPrefix: urlPrefix,
-				Full:      full,
-			})
-			if err != nil {
-				log.Printf("fetch error for query %s: %v\n", query, err)
-			}
-			wg.Done()
-		}
-	}
-
-	for w := 0; w < workers; w++ {
-		go worker(queriesChan, &wg)
-	}
-
-	for _, query := range queries {
-		wg.Add(1)
-		queriesChan <- query
-	}
-	close(queriesChan)
-	wg.Wait()
 
 	return nil
 }

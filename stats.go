@@ -49,8 +49,12 @@ func (c *Client) Stats(query string, size int, fields []string) (res []StatsObje
 	if err != nil {
 		return
 	}
-	if len(sr.Errmsg) > 0 {
-		err = errors.New(sr.Errmsg)
+	if sr.Error || len(sr.Errmsg) > 0 {
+		if sr.Errmsg != "" {
+			err = errors.New(sr.Errmsg)
+		} else {
+			err = errors.New("fofa stats failed")
+		}
 		return
 	}
 

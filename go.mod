@@ -9,6 +9,7 @@ require (
 	github.com/expr-lang/expr v1.16.9
 	github.com/fatih/color v1.13.0
 	github.com/go-rod/rod v0.116.2
+	github.com/gofrs/flock v0.8.1
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.9.0

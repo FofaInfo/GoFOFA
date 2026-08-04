@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 const (
@@ -36,8 +37,12 @@ type Client struct {
 	logger     *logrus.Logger
 	ctx        context.Context // use to cancel requests
 
-	onResults    func(results [][]string) // when fetch results callback
-	accountDebug bool                     // 调试账号明文信息
+	onResults           func(results [][]string) // when fetch results callback
+	accountDebug        bool                     // 调试账号明文信息
+	queryLimiter        *queryRateLimiter
+	rateLimitRetries    int
+	rateLimitRetryDelay time.Duration
+	sharedRateLimit     bool
 }
 
 // Update merge config from config url
@@ -115,6 +120,31 @@ func WithAccountDebug(v bool) ClientOption {
 	}
 }
 
+// WithRateLimitRetry configures retries for FOFA rate-limit responses.
+// maxRetries is the number of attempts after the initial request.
+func WithRateLimitRetry(maxRetries int, retryDelay time.Duration) ClientOption {
+	return func(c *Client) error {
+		if maxRetries < 0 {
+			return fmt.Errorf("maxRetries must be non-negative")
+		}
+		if retryDelay < 0 {
+			return fmt.Errorf("retryDelay must be non-negative")
+		}
+		c.rateLimitRetries = maxRetries
+		c.rateLimitRetryDelay = retryDelay
+		return nil
+	}
+}
+
+// WithSharedRateLimit enables a process-shared query rate limit for CLI-style
+// clients. The state file contains only the next send time, not credentials.
+func WithSharedRateLimit(enabled bool) ClientOption {
+	return func(c *Client) error {
+		c.sharedRateLimit = enabled
+		return nil
+	}
+}
+
 // NewClient from fofa connection string to config
 // and with env config merge
 func NewClient(options ...ClientOption) (*Client, error) {
@@ -143,6 +173,10 @@ func NewClient(options ...ClientOption) (*Client, error) {
 	if c.Account.Error {
 		c.logger.Warnf("auth failed")
 		return c, fmt.Errorf("auth failed: '%s', make sure key is valid", c.Account.ErrMsg)
+	}
+	c.queryLimiter = newQueryRateLimiter(queryInterval(c.Account))
+	if c.sharedRateLimit && c.queryLimiter.interval > 0 {
+		c.queryLimiter.sharedPath = sharedRateLimitPath(c.Server, c.Key)
 	}
 
 	return c, nil

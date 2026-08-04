@@ -1,7 +1,6 @@
 package gofofa
 
 import (
-	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -26,6 +25,26 @@ type HostResults struct {
 	Size    int         `json:"size"` // 总数
 	Results interface{} `json:"results"`
 	Next    string      `json:"next"`
+}
+
+func hostResultsError(results HostResults) error {
+	if !results.Error && results.Errmsg == "" {
+		return nil
+	}
+	if results.Errmsg != "" {
+		return errors.New(results.Errmsg)
+	}
+	return errors.New("fofa search failed")
+}
+
+func hostStatsError(data HostStatsData) error {
+	if !data.Error {
+		return nil
+	}
+	if data.Errmsg != "" {
+		return errors.New(data.Errmsg)
+	}
+	return errors.New("fofa host stats failed")
 }
 
 // HostStatsData /host api results
@@ -294,7 +313,7 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 			// 确认是否需要退出
 			select {
 			case <-c.GetContext().Done():
-				err = context.Canceled
+				err = ctx.Err()
 				return
 			default:
 			}
@@ -315,8 +334,7 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 		}
 
 		// 报错，退出
-		if len(hr.Errmsg) > 0 {
-			err = errors.New(hr.Errmsg)
+		if err = hostResultsError(hr); err != nil {
 			break
 		}
 
@@ -391,6 +409,9 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 		} else {
 			break
 		}
+		if c.logger != nil {
+			c.logger.Debugf("fofa search page=%d results=%d", page, len(results))
+		}
 
 		if c.onResults != nil {
 			c.onResults(results)
@@ -460,6 +481,9 @@ func (c *Client) HostSize(query string) (count int, err error) {
 	if err != nil {
 		return
 	}
+	if err = hostResultsError(hr); err != nil {
+		return
+	}
 	count = hr.Size
 	return
 }
@@ -470,9 +494,7 @@ func (c *Client) HostStats(host string) (data HostStatsData, err error) {
 	if err != nil {
 		return
 	}
-	if data.Error {
-		err = errors.New(data.Errmsg)
-	}
+	err = hostStatsError(data)
 	return
 }
 
@@ -506,7 +528,7 @@ func (c *Client) DumpSearch(query string, allSize int, batchSize int, fields []s
 			// 确认是否需要退出
 			select {
 			case <-c.GetContext().Done():
-				err = context.Canceled
+				err = ctx.Err()
 				return
 			default:
 			}
@@ -527,8 +549,7 @@ func (c *Client) DumpSearch(query string, allSize int, batchSize int, fields []s
 		}
 
 		// 报错，退出
-		if len(hr.Errmsg) > 0 {
-			err = errors.New(hr.Errmsg)
+		if err = hostResultsError(hr); err != nil {
 			break
 		}
 
@@ -552,6 +573,12 @@ func (c *Client) DumpSearch(query string, allSize int, batchSize int, fields []s
 		} else {
 			break
 		}
+		if c.logger != nil {
+			c.logger.Debugf("fofa dump results=%d next_present=%t cursor_stalled=%t", len(results), hr.Next != "" && hr.Next != next, hr.Next != "" && hr.Next == next)
+		}
+
+		reachesLimit := allSize > 0 && allSize <= fetchedSize+len(results)
+		cursorStalled := !reachesLimit && hr.Next != "" && hr.Next == next
 
 		// 后处理
 		results = c.postProcess(results, fields, hostIndex, protocolIndex, rawFieldSize, options...)
@@ -564,6 +591,9 @@ func (c *Client) DumpSearch(query string, allSize int, batchSize int, fields []s
 		}
 
 		fetchedSize += len(results)
+		if cursorStalled {
+			return errors.New("fofa search cursor did not advance")
+		}
 
 		// 数据填满了，完成
 		if allSize > 0 && allSize <= fetchedSize {
@@ -579,7 +609,6 @@ func (c *Client) DumpSearch(query string, allSize int, batchSize int, fields []s
 		if hr.Next == "" {
 			break
 		}
-
 		next = hr.Next // 偏移
 	}
 
