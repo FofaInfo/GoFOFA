@@ -180,7 +180,11 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		c.logger.Warnf("account invalid")
 		if c.Account.Error {
 			c.logger.Warnf("auth failed")
-			return c, fmt.Errorf("auth failed: '%s', make sure key is valid", c.Account.ErrMsg)
+			message := c.Account.ErrMsg
+			if message == "" {
+				message = err.Error()
+			}
+			return c, fmt.Errorf("auth failed: '%s', make sure key is valid", message)
 		}
 		return c, err
 	}

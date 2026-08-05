@@ -419,3 +419,17 @@ func TestNewClientWithKeyOnly(t *testing.T) {
 		t.Fatalf("credentials = email %q, key %q; want empty email and key %q", client.Email, client.Key, account.Key)
 	}
 }
+
+func TestNewClientWithAccountErrorWithoutMessage(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/info/my" {
+			writeJSON(w, http.StatusNotFound, map[string]interface{}{"error": true})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]interface{}{"error": true})
+	}))
+	defer server.Close()
+
+	_, err := NewClient(WithURL(server.URL + "/?key=invalid"))
+	assert.EqualError(t, err, "auth failed: 'fofa account info failed', make sure key is valid")
+}
