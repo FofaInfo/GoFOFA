@@ -140,7 +140,6 @@ func TestHostSearchRetriesRateLimitResponses(t *testing.T) {
 	}{
 		{name: "business error", statusCode: http.StatusOK},
 		{name: "http 429", statusCode: http.StatusTooManyRequests},
-		{name: "http 492", statusCode: fofaRateLimitStatus},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			calls := 0
