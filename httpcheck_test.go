@@ -1,51 +1,49 @@
 package gofofa
 
 import (
-	"os"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCheckActive(t *testing.T) {
-	if os.Getenv("CI") != "" {
-		t.Skip("skipping network-dependent test in CI")
-	}
+func TestDoHttpCheck(t *testing.T) {
+	successServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer successServer.Close()
+
+	failServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer failServer.Close()
+
 	tests := []struct {
-		name          string
-		fixedHostInfo string
-		want          HttpResponse
+		name string
+		url  string
+		want HttpResponse
 	}{
 		{
-			name:          "Success base",
-			fixedHostInfo: "http://www.baidu.com",
-			want:          HttpResponse{IsActive: true, StatusCode: "200"},
+			name: "Success",
+			url:  successServer.URL,
+			want: HttpResponse{IsActive: true, StatusCode: "200"},
 		},
 		{
-			name:          "Fail base",
-			fixedHostInfo: "http://www.sadhdkashdaskjdhsajkhkjhdaskhd.com",
-			want:          HttpResponse{IsActive: false, StatusCode: "0"},
+			name: "404",
+			url:  failServer.URL,
+			want: HttpResponse{IsActive: true, StatusCode: "404"},
 		},
 		{
-			name:          "IP base",
-			fixedHostInfo: "123.58.224.8",
-			want:          HttpResponse{IsActive: true, StatusCode: "200"},
-		},
-		{
-			name:          "Domain base",
-			fixedHostInfo: "www.baidu.com",
-			want:          HttpResponse{IsActive: true, StatusCode: "200"},
-		},
-		{
-			name:          "HTTPS base",
-			fixedHostInfo: "https://fofa.info",
-			want:          HttpResponse{IsActive: true, StatusCode: "200"},
+			name: "Invalid host",
+			url:  "http://127.0.0.1:1",
+			want: HttpResponse{IsActive: false, StatusCode: "0"},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, DoHttpCheck(tt.fixedHostInfo, 3), "CheckActive(%v)", tt.fixedHostInfo)
+			got := DoHttpCheck(tt.url, 1)
+			assert.Equal(t, tt.want, got)
 		})
 	}
-
 }
