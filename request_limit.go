@@ -107,11 +107,12 @@ func (l *queryRateLimiter) withQuerySlot(ctx context.Context, fn func() error) (
 
 	started := time.Now()
 	l.mu.Lock()
-	defer l.mu.Unlock()
 	if err := waitForRetry(ctx, time.Until(l.next)); err != nil {
+		l.mu.Unlock()
 		return time.Since(started), err
 	}
 	l.next = time.Now().Add(l.interval)
+	l.mu.Unlock()
 	return time.Since(started), fn()
 }
 
@@ -125,16 +126,17 @@ func (l *queryRateLimiter) withSharedQuerySlot(ctx context.Context, fn func() er
 	if !locked {
 		return 0, fmt.Errorf("acquire shared rate limit lock: lock was not acquired")
 	}
-	defer func() {
-		if unlockErr := lock.Unlock(); err == nil && unlockErr != nil {
-			err = unlockErr
-		}
-	}()
 
 	waitFor, err := l.reserveSharedSlotWithLock()
+	if unlockErr := lock.Unlock(); unlockErr != nil {
+		if err == nil {
+			return time.Since(started), unlockErr
+		}
+	}
 	if err != nil {
 		return time.Since(started), err
 	}
+
 	if err = waitForRetry(ctx, waitFor); err != nil {
 		return time.Since(started), err
 	}
