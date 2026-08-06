@@ -1,12 +1,16 @@
 package gofofa
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCheckActive(t *testing.T) {
+	if os.Getenv("CI") != "" {
+		t.Skip("skipping network-dependent test in CI")
+	}
 	tests := []struct {
 		name          string
 		fixedHostInfo string
