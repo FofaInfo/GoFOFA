@@ -170,10 +170,6 @@ func (c *Client) fetchBodyOnce(ctx context.Context, apiURI string, params map[st
 		//	}
 		//	reader1.Close()
 	}
-	if encoding == "gzip" {
-
-	}
-
 	//respDump, _ := httputil.DumpResponse(resp, false)
 	//logrus.Debugln(string(respDump))
 

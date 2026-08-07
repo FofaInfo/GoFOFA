@@ -54,15 +54,10 @@ func (c *Client) Update(configURL string) error {
 
 	c.Server = u.Scheme + "://" + u.Host
 	query := u.Query()
-	if query.Has("email") {
-		c.Email = query.Get("email")
-	}
-
+	// Omitting the optional email explicitly selects key-only authentication.
+	c.Email = query.Get("email")
 	if query.Has("key") {
 		c.Key = query.Get("key")
-		if !query.Has("email") {
-			c.Email = ""
-		}
 	}
 
 	if query.Has("version") {
@@ -172,6 +167,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 			return nil, err
 		}
 	}
+	c.queryLimiter = newQueryRateLimiter(0)
 
 	// fetch one time to make sure network is ok
 	c.httpClient = &http.Client{}

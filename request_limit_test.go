@@ -307,6 +307,37 @@ func TestDumpSearchStopsWhenCursorDoesNotAdvance(t *testing.T) {
 	}
 }
 
+func TestDumpSearchDeliversStalledPageThatReachesLimit(t *testing.T) {
+	calls := 0
+	var delivered [][]string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/search/next" {
+			writeJSON(w, http.StatusNotFound, map[string]interface{}{"error": true})
+			return
+		}
+		calls++
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"error":   false,
+			"size":    2,
+			"next":    "same-cursor",
+			"results": [][]string{{fmt.Sprintf("198.51.100.%d", calls)}},
+		})
+	}))
+	defer server.Close()
+
+	client := newRateLimitTestClient(server)
+	err := client.DumpSearch("port=80", 2, 1, []string{"ip"}, func(results [][]string, _ int) error {
+		delivered = append(delivered, results...)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("DumpSearch returned error at exact limit: %v", err)
+	}
+	if calls != 2 || len(delivered) != 2 {
+		t.Fatalf("requests = %d, delivered = %v; want two requests and two results", calls, delivered)
+	}
+}
+
 func TestDumpSearchStopsWhenShortPageCursorDoesNotAdvance(t *testing.T) {
 	calls := 0
 	callbackCalls := 0
@@ -714,6 +745,14 @@ func TestRetryAfterDuration_Seconds(t *testing.T) {
 	}
 }
 
+func TestRetryAfterDuration_CapsLargeSeconds(t *testing.T) {
+	for _, header := range []string{"31", "9223372036854775807"} {
+		if d := retryAfterDuration(header, time.Second); d != maxRateLimitRetryDelay {
+			t.Fatalf("retryAfterDuration(%q) = %s, want %s", header, d, maxRateLimitRetryDelay)
+		}
+	}
+}
+
 func TestRetryAfterDuration_ZeroSeconds(t *testing.T) {
 	d := retryAfterDuration("0", time.Second)
 	if d != 0 {
@@ -726,6 +765,13 @@ func TestRetryAfterDuration_HTTPDate(t *testing.T) {
 	d := retryAfterDuration(retryAt, time.Second)
 	if d < 29*time.Second || d > 31*time.Second {
 		t.Fatalf("retryAfterDuration = %s, want ~30s", d)
+	}
+}
+
+func TestRetryAfterDuration_CapsFutureHTTPDate(t *testing.T) {
+	retryAt := time.Now().Add(time.Hour).UTC().Format(http.TimeFormat)
+	if d := retryAfterDuration(retryAt, time.Second); d != maxRateLimitRetryDelay {
+		t.Fatalf("retryAfterDuration = %s, want %s", d, maxRateLimitRetryDelay)
 	}
 }
 
@@ -927,13 +973,13 @@ func TestReserveSharedSlotWithLockReturnsStateWriteError(t *testing.T) {
 	}
 }
 
-// ========== retryDelay in-loop cap ==========
+// ========== retryDelay cap after final doubling ==========
 
-func TestRetryDelay_InLoopCap(t *testing.T) {
-	// base=8s, attempt=2: 8->16->32 but 32>30 so capped at 30 in loop
+func TestRetryDelayCapsAfterFinalDoubling(t *testing.T) {
+	// base=8s, attempt=2: 8->16->32, then cap the result at 30s.
 	base := 8 * time.Second
 	if d := retryDelay(base, 2); d != 30*time.Second {
-		t.Fatalf("retryDelay(8s, 2) = %s, want 30s (capped in loop)", d)
+		t.Fatalf("retryDelay(8s, 2) = %s, want 30s", d)
 	}
 }
 

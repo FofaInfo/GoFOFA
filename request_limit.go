@@ -17,8 +17,10 @@ import (
 )
 
 const (
-	advancedQueryInterval = time.Second
-	rateLimitErrorCode    = 45012
+	advancedQueryInterval   = time.Second
+	sharedLockRetryInterval = 50 * time.Millisecond
+	maxRateLimitRetryDelay  = 30 * time.Second
+	rateLimitErrorCode      = 45012
 )
 
 type queryRateLimiter struct {
@@ -64,7 +66,7 @@ func (l *queryRateLimiter) withQuerySlot(ctx context.Context, fn func() error) (
 func (l *queryRateLimiter) withSharedQuerySlot(ctx context.Context, fn func() error) (waited time.Duration, err error) {
 	started := time.Now()
 	lock := flock.New(l.sharedPath + ".lock")
-	locked, err := lock.TryLockContext(ctx, 5*time.Millisecond)
+	locked, err := lock.TryLockContext(ctx, sharedLockRetryInterval)
 	if err != nil {
 		return 0, err
 	}
@@ -159,16 +161,19 @@ func sharedRateLimitPath(server, key string) string {
 }
 
 func retryAfterDuration(header string, fallback time.Duration) time.Duration {
-	if seconds, err := strconv.Atoi(strings.TrimSpace(header)); err == nil && seconds >= 0 {
+	if seconds, err := strconv.ParseInt(strings.TrimSpace(header), 10, 64); err == nil && seconds >= 0 {
+		if seconds >= int64(maxRateLimitRetryDelay/time.Second) {
+			return maxRateLimitRetryDelay
+		}
 		return time.Duration(seconds) * time.Second
 	}
 	if retryAt, err := http.ParseTime(header); err == nil {
 		if delay := time.Until(retryAt); delay > 0 {
-			return delay
+			return min(delay, maxRateLimitRetryDelay)
 		}
 		return 0
 	}
-	return fallback
+	return min(fallback, maxRateLimitRetryDelay)
 }
 
 func retryDelay(base time.Duration, attempt int) time.Duration {
@@ -176,16 +181,10 @@ func retryDelay(base time.Duration, attempt int) time.Duration {
 		return 0
 	}
 	delay := base
-	for i := 0; i < attempt; i++ {
-		if delay >= 30*time.Second {
-			return 30 * time.Second
-		}
+	for i := 0; i < attempt && delay < maxRateLimitRetryDelay; i++ {
 		delay *= 2
 	}
-	if delay > 30*time.Second {
-		return 30 * time.Second
-	}
-	return delay
+	return min(delay, maxRateLimitRetryDelay)
 }
 
 func waitForRetry(ctx context.Context, delay time.Duration) error {

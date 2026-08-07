@@ -420,6 +420,59 @@ func TestNewClientWithKeyOnly(t *testing.T) {
 	}
 }
 
+func TestClientUpdateCredentialMerge(t *testing.T) {
+	tests := []struct {
+		name      string
+		configURL string
+		wantEmail string
+		wantKey   string
+	}{
+		{
+			name:      "key only clears legacy email",
+			configURL: "https://fofa.example/?key=new-key",
+			wantKey:   "new-key",
+		},
+		{
+			name:      "email only preserves old key",
+			configURL: "https://fofa.example/?email=new%40example.com",
+			wantEmail: "new@example.com",
+			wantKey:   "old-key",
+		},
+		{
+			name:      "missing email clears legacy email",
+			configURL: "https://fofa.example/?version=v2",
+			wantKey:   "old-key",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := &Client{Email: "old@example.com", Key: "old-key"}
+			if err := client.Update(tt.configURL); err != nil {
+				t.Fatalf("Update returned error: %v", err)
+			}
+			if client.Email != tt.wantEmail || client.Key != tt.wantKey {
+				t.Fatalf("credentials = (%q, %q), want (%q, %q)", client.Email, client.Key, tt.wantEmail, tt.wantKey)
+			}
+		})
+	}
+}
+
+func TestNewClientInitializesLimiterBeforeAccountRequestFailure(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("not-json"))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(WithURL(server.URL + "/?key=test-key"))
+	if err == nil {
+		t.Fatal("NewClient returned nil error for invalid account response")
+	}
+	if client == nil || client.queryLimiter == nil {
+		t.Fatalf("client query limiter = %v, want initialized limiter", client)
+	}
+}
+
 func TestNewClientWithAccountErrorWithoutMessage(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/v1/info/my" {
