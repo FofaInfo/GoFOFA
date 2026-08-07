@@ -279,43 +279,61 @@ func DumpAction(ctx *cli.Context) error {
 
 	// do search
 	var locker sync.Mutex
+	var errMu sync.Mutex
+	var firstErr error
+	recordError := func(err error) {
+		if err == nil {
+			return
+		}
+		errMu.Lock()
+		defer errMu.Unlock()
+		if firstErr == nil {
+			firstErr = err
+		}
+	}
 	wg := sync.WaitGroup{}
 	queriesChan := make(chan string, len(queries))
 	limiter := rate.NewLimiter(rate.Limit(ratePerSecond), 5)
 
-	worker := func(qChan <-chan string, wg *sync.WaitGroup) {
-		for query := range qChan {
-			if err := limiter.Wait(context.Background()); err != nil {
-				fmt.Println("Error: ", err)
-			}
-			log.Println("dump data of query:", query)
+	processQuery := func(query string) {
+		defer wg.Done()
+		if err := limiter.Wait(context.Background()); err != nil {
+			recordError(err)
+			return
+		}
+		log.Println("dump data of query:", query)
 
-			fetchedSize := 0
-			err := fofaCli.DumpSearch(query, size, batchSize, fields, func(res [][]string, allSize int) (err error) {
-				fetchedSize += len(res)
-				log.Printf("size: %d/%d, %.2f%% for query: %s", fetchedSize, allSize, 100*float32(fetchedSize)/float32(allSize), query)
-				// output
-				locker.Lock()
-				defer locker.Unlock()
-				err = writer.WriteAll(res)
-				if err == nil {
-					writer.Flush()
-				}
-				return err
-			}, gofofa.SearchOptions{
-				FixUrl:    fixUrl,
-				UrlPrefix: urlPrefix,
-				Full:      full,
-			})
-			if err != nil {
-				log.Printf("fetch error for query %s: %v\n", query, err)
+		fetchedSize := 0
+		err := fofaCli.DumpSearch(query, size, batchSize, fields, func(res [][]string, allSize int) (err error) {
+			fetchedSize += len(res)
+			log.Printf("size: %d/%d, %.2f%% for query: %s", fetchedSize, allSize, 100*float32(fetchedSize)/float32(allSize), query)
+			// output
+			locker.Lock()
+			defer locker.Unlock()
+			err = writer.WriteAll(res)
+			if err == nil {
+				writer.Flush()
 			}
-			wg.Done()
+			return err
+		}, gofofa.SearchOptions{
+			FixUrl:    fixUrl,
+			UrlPrefix: urlPrefix,
+			Full:      full,
+		})
+		if err != nil {
+			log.Printf("fetch error for query %s: %v\n", query, err)
+			recordError(err)
+		}
+	}
+
+	worker := func(qChan <-chan string) {
+		for query := range qChan {
+			processQuery(query)
 		}
 	}
 
 	for w := 0; w < workers; w++ {
-		go worker(queriesChan, &wg)
+		go worker(queriesChan)
 	}
 
 	for _, query := range queries {
@@ -325,5 +343,5 @@ func DumpAction(ctx *cli.Context) error {
 	close(queriesChan)
 	wg.Wait()
 
-	return nil
+	return firstErr
 }

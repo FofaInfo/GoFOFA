@@ -307,7 +307,7 @@ func TestDumpSearchStopsWhenCursorDoesNotAdvance(t *testing.T) {
 	}
 }
 
-func TestDumpSearchDeliversStalledPageThatReachesLimit(t *testing.T) {
+func TestDumpSearchRejectsStalledPageThatWouldReachLimit(t *testing.T) {
 	calls := 0
 	var delivered [][]string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -320,6 +320,33 @@ func TestDumpSearchDeliversStalledPageThatReachesLimit(t *testing.T) {
 			"error":   false,
 			"size":    2,
 			"next":    "same-cursor",
+			"results": [][]string{{"198.51.100.1"}},
+		})
+	}))
+	defer server.Close()
+
+	client := newRateLimitTestClient(server)
+	err := client.DumpSearch("port=80", 2, 1, []string{"ip"}, func(results [][]string, _ int) error {
+		delivered = append(delivered, results...)
+		return nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "cursor did not advance") {
+		t.Fatalf("error = %v, want cursor progress error", err)
+	}
+	if calls != 2 || len(delivered) != 1 {
+		t.Fatalf("requests = %d, delivered = %v; want only the non-stalled page", calls, delivered)
+	}
+}
+
+func TestDumpSearchDeliversAdvancingPageThatReachesLimit(t *testing.T) {
+	calls := 0
+	var delivered [][]string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"error":   false,
+			"size":    2,
+			"next":    fmt.Sprintf("cursor-%d", calls),
 			"results": [][]string{{fmt.Sprintf("198.51.100.%d", calls)}},
 		})
 	}))
@@ -331,10 +358,42 @@ func TestDumpSearchDeliversStalledPageThatReachesLimit(t *testing.T) {
 		return nil
 	})
 	if err != nil {
-		t.Fatalf("DumpSearch returned error at exact limit: %v", err)
+		t.Fatalf("DumpSearch returned error with advancing cursor: %v", err)
 	}
 	if calls != 2 || len(delivered) != 2 {
 		t.Fatalf("requests = %d, delivered = %v; want two requests and two results", calls, delivered)
+	}
+}
+
+func TestDumpSearchLimitsFinalBatch(t *testing.T) {
+	calls := 0
+	var requestedSize string
+	var delivered [][]string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		requestedSize = r.URL.Query().Get("size")
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"error": false,
+			"size":  3,
+			"results": [][]string{
+				{"198.51.100.1"},
+				{"198.51.100.2"},
+				{"198.51.100.3"},
+			},
+		})
+	}))
+	defer server.Close()
+
+	client := newRateLimitTestClient(server)
+	err := client.DumpSearch("port=80", 2, 3, []string{"ip"}, func(results [][]string, _ int) error {
+		delivered = append(delivered, results...)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("DumpSearch returned error: %v", err)
+	}
+	if calls != 1 || requestedSize != "2" || len(delivered) != 2 {
+		t.Fatalf("calls=%d requested_size=%q delivered=%v; want one request for two results", calls, requestedSize, delivered)
 	}
 }
 

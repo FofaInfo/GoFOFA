@@ -54,10 +54,15 @@ func (c *Client) Update(configURL string) error {
 
 	c.Server = u.Scheme + "://" + u.Host
 	query := u.Query()
-	// Omitting the optional email explicitly selects key-only authentication.
-	c.Email = query.Get("email")
+	if query.Has("email") {
+		c.Email = query.Get("email")
+	}
 	if query.Has("key") {
 		c.Key = query.Get("key")
+		// A new key without an email explicitly selects key-only authentication.
+		if !query.Has("email") {
+			c.Email = ""
+		}
 	}
 
 	if query.Has("version") {

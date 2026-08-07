@@ -504,6 +504,18 @@ func (c *Client) DumpSearch(query string, allSize int, batchSize int, fields []s
 	// 分页取数据
 	fetchedSize := 0
 	for {
+		requestSize := perPage
+		remaining := -1
+		if allSize > 0 {
+			remaining = allSize - fetchedSize
+			if remaining <= 0 {
+				break
+			}
+			if requestSize > remaining {
+				requestSize = remaining
+			}
+		}
+
 		if ctx := c.GetContext(); ctx != nil {
 			// 确认是否需要退出
 			select {
@@ -518,7 +530,7 @@ func (c *Client) DumpSearch(query string, allSize int, batchSize int, fields []s
 		err = c.Fetch("search/next",
 			map[string]string{
 				"qbase64": base64.StdEncoding.EncodeToString([]byte(query)),
-				"size":    strconv.Itoa(perPage),
+				"size":    strconv.Itoa(requestSize),
 				"fields":  strings.Join(fields, ","),
 				"full":    strconv.FormatBool(full), // 是否全部数据，非一年内
 				"next":    next,                     // 偏移
@@ -557,10 +569,12 @@ func (c *Client) DumpSearch(query string, allSize int, batchSize int, fields []s
 			c.logger.Debugf("fofa dump results=%d next_present=%t cursor_stalled=%t", len(results), hr.Next != "" && hr.Next != next, hr.Next != "" && hr.Next == next)
 		}
 
-		reachesLimit := allSize > 0 && allSize <= fetchedSize+len(results)
-		cursorStalled := !reachesLimit && hr.Next != "" && hr.Next == next
+		cursorStalled := hr.Next != "" && hr.Next == next
 		if cursorStalled {
 			return errors.New("fofa search cursor did not advance")
+		}
+		if remaining > 0 && len(results) > remaining {
+			results = results[:remaining]
 		}
 
 		// 后处理
@@ -581,7 +595,7 @@ func (c *Client) DumpSearch(query string, allSize int, batchSize int, fields []s
 		}
 
 		// 数据已经没有了
-		if len(results) < perPage {
+		if len(results) < requestSize {
 			break
 		}
 

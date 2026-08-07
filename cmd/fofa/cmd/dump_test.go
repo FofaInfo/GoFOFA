@@ -221,3 +221,58 @@ func TestDumpAction_DefaultsWithInFile(t *testing.T) {
 	assert.Equal(t, 10, workers)
 	assert.Equal(t, 2, ratePerSecond)
 }
+
+func TestDumpActionReturnsCursorError(t *testing.T) {
+	var searchCalls int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v1/info/my":
+			_, _ = w.Write([]byte(`{"error":false}`))
+		case "/api/v1/search/next":
+			searchCalls++
+			_, _ = w.Write([]byte(`{"error":false,"size":3,"next":"same-cursor","results":[["198.51.100.1"]]}`))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	originalClient := fofaCli
+	originalWorkers := workers
+	originalRate := ratePerSecond
+	originalSize := size
+	originalBatchSize := batchSize
+	originalOutFile := outFile
+	t.Cleanup(func() {
+		fofaCli = originalClient
+		workers = originalWorkers
+		ratePerSecond = originalRate
+		size = originalSize
+		batchSize = originalBatchSize
+		outFile = originalOutFile
+	})
+
+	var err error
+	fofaCli, err = gofofa.NewClient(gofofa.WithURL(server.URL + "/?key=test-key"))
+	if err != nil {
+		t.Fatalf("NewClient returned error: %v", err)
+	}
+
+	outputPath := t.TempDir() + "/dump.csv"
+	app := &cli.App{Commands: []*cli.Command{dumpCmd}}
+	err = app.Run([]string{
+		"fofa", "dump",
+		"--size", "3",
+		"--batchSize", "1",
+		"--workers", "1",
+		"--rate", "100",
+		"--outFile", outputPath,
+		"port=80",
+	})
+	if err == nil || !strings.Contains(err.Error(), "cursor did not advance") {
+		t.Fatalf("DumpAction error = %v, want cursor progress error", err)
+	}
+	if searchCalls != 2 {
+		t.Fatalf("search request count = %d, want 2", searchCalls)
+	}
+}

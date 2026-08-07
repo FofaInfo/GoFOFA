@@ -439,8 +439,14 @@ func TestClientUpdateCredentialMerge(t *testing.T) {
 			wantKey:   "old-key",
 		},
 		{
-			name:      "missing email clears legacy email",
+			name:      "version only preserves old credentials",
 			configURL: "https://fofa.example/?version=v2",
+			wantEmail: "old@example.com",
+			wantKey:   "old-key",
+		},
+		{
+			name:      "explicit empty email clears legacy email",
+			configURL: "https://fofa.example/?email=&version=v2",
 			wantKey:   "old-key",
 		},
 	}
