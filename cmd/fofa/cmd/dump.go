@@ -92,8 +92,8 @@ var dumpCmd = &cli.Command{
 		&cli.IntFlag{
 			Name:        "batchSize",
 			Aliases:     []string{"bs"},
-			Value:       1000,
-			Usage:       "the amount of data contained in each batch",
+			Value:       0,
+			Usage:       "the amount of data contained in each batch, default 1000",
 			Destination: &batchSize,
 		},
 		&cli.StringFlag{

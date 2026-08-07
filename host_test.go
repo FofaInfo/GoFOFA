@@ -2,11 +2,13 @@ package gofofa
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestClient_HostSearch(t *testing.T) {
@@ -455,4 +457,101 @@ func TestClient_DumpSearch(t *testing.T) {
 		return nil
 	}, SearchOptions{FixUrl: true})
 	assert.NotNil(t, err)
+}
+
+func TestClient_BatchSizeWithBodyField(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(queryHander))
+	defer ts.Close()
+
+	account := validAccounts[1]
+	cli, err := NewClient(WithURL(ts.URL + "?email=" + account.Email + "&key=" + account.Key))
+	assert.Nil(t, err)
+
+	// Test 1: HostSearch with body field - should auto-cap batchSize at 500
+	// The logger should warn about the batchSize change
+	res, err := cli.HostSearch("port=80", 10, []string{"ip", "port", "body"})
+	assert.Nil(t, err)
+	assert.Equal(t, 10, len(res))
+
+	// Test 2: HostSearch with body field and explicit batchSize - should use explicit value
+	res, err = cli.HostSearch("port=80", 10, []string{"ip", "port", "body"}, SearchOptions{BatchSize: 600})
+	assert.Nil(t, err)
+	assert.Equal(t, 10, len(res))
+
+	// Test 3: HostSearch without body field - should use default batchSize 1000
+	res, err = cli.HostSearch("port=80", 10, []string{"ip", "port", "host"})
+	assert.Nil(t, err)
+	assert.Equal(t, 10, len(res))
+
+	// Test 4: HostSearch with body field and small explicit batchSize
+	res, err = cli.HostSearch("port=80", 10, []string{"ip", "port", "body"}, SearchOptions{BatchSize: 300})
+	assert.Nil(t, err)
+	assert.Equal(t, 10, len(res))
+
+	// Test 5: DumpSearch with body field - should auto-cap at 500
+	dumpRes := make([][]string, 0)
+	err = cli.DumpSearch("port=80", 100, 1000, []string{"ip", "port", "body"}, func(i [][]string, i2 int) error {
+		dumpRes = append(dumpRes, i...)
+		return nil
+	})
+	assert.Nil(t, err)
+
+	// Test 6: DumpSearch with body field and explicit batchSize
+	dumpRes = make([][]string, 0)
+	err = cli.DumpSearch("port=80", 100, 800, []string{"ip", "port", "body"}, func(i [][]string, i2 int) error {
+		dumpRes = append(dumpRes, i...)
+		return nil
+	})
+	assert.Nil(t, err)
+}
+
+func TestClient_BatchSizeAutomaticCapping(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(queryHander))
+	defer ts.Close()
+
+	// 使用高级会员账号，避免 100 条的免费限制
+	account := validAccounts[3]
+
+	// 设置日志钩子来捕获警告
+	var logs []string
+	logger := logrus.New()
+	logger.AddHook(&testHook{f: func(e *logrus.Entry) {
+		logs = append(logs, e.Message)
+	}})
+
+	cli, err := NewClient(WithURL(ts.URL+"?email="+account.Email+"&key="+account.Key), WithLogger(logger))
+	assert.Nil(t, err)
+
+	// 测试 1: 包含 body 字段，且不指定 BatchSize (即为 0)
+	// 预期行为：内部逻辑应该触发警告并设置 batchSize 为 500
+	// 这里 size 设置为 10，因为 mock server 对 size=10 有完整的 10 条数据返回
+	res, err := cli.HostSearch("port=80", 10, []string{"ip", "port", "body"}, SearchOptions{BatchSize: 0})
+	assert.Nil(t, err)
+	assert.Equal(t, 10, len(res))
+
+	// 验证是否触发了自动调优 batchSize 的警告
+	foundWarning := false
+	for _, l := range logs {
+		if strings.Contains(l, "fields contains body, change batchSize to 500") {
+			foundWarning = true
+			break
+		}
+	}
+	assert.True(t, foundWarning, "Should have found auto-capping warning in logs")
+
+	// 测试 2: 不包含 body 字段，不指定 BatchSize
+	// 预期行为：不应该触发 body 相关的自动降级警告
+	logs = nil
+	res, err = cli.HostSearch("port=80", 10, []string{"ip", "port"}, SearchOptions{BatchSize: 0})
+	assert.Nil(t, err)
+	assert.Equal(t, 10, len(res))
+
+	foundWarning = false
+	for _, l := range logs {
+		if strings.Contains(l, "fields contains body, change batchSize to 500") {
+			foundWarning = true
+			break
+		}
+	}
+	assert.False(t, foundWarning, "Should NOT have found auto-capping warning for non-body fields")
 }

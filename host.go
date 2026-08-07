@@ -4,11 +4,13 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/Knetic/govaluate"
-	"github.com/expr-lang/expr"
+	"log"
 	"math"
 	"strconv"
 	"strings"
+
+	"github.com/Knetic/govaluate"
+	"github.com/expr-lang/expr"
 )
 
 const (
@@ -54,6 +56,7 @@ type SearchOptions struct {
 	DeWildcard  int    // number of wildcard domains retained
 	Filter      string // filter data by rules
 	DedupHost   bool   // prioritize subdomain data retention
+	BatchSize   int    // custom batch size
 }
 
 // fixHostToUrl 替换host为url
@@ -225,11 +228,34 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 	}
 
 	page := 1
-	perPage := int(math.Min(float64(size), 1000)) // 最多一次取1000
 
-	// 一次取所有数据，perPage 默认给 1000
+	maxPerPage := 1000
+	userSetBatchSize := false
+	if len(options) > 0 && options[0].BatchSize > 0 {
+		maxPerPage = options[0].BatchSize
+		userSetBatchSize = true
+		if maxPerPage > 10000 {
+			maxPerPage = 10000 // /search/all api limit
+		}
+	}
+
+	for _, f := range fields {
+		if f == "body" {
+			if maxPerPage > 500 && !userSetBatchSize {
+				maxPerPage = 500
+				if c.logger != nil {
+					c.logger.Warnf("fields contains body, change batchSize to %d", maxPerPage)
+				}
+			}
+			break
+		}
+	}
+
+	perPage := int(math.Min(float64(size), float64(maxPerPage))) // 最多一次取 maxPerPage
+
+	// 一次取所有数据，perPage 默认给 maxPerPage
 	if size == -1 {
-		perPage = 1000
+		perPage = maxPerPage
 	}
 
 	hostIndex, protocolIndex, fields, rawFieldSize, err := c.fixUrlCheck(fields, options...)
@@ -398,6 +424,7 @@ func (c *Client) HostSearch(query string, size int, fields []string, options ...
 		}
 
 		res = append(res, results...)
+		log.Printf("size: %d for query: %s", len(res), query)
 
 		// 数据填满了，完成
 		if size != -1 && size <= len(res) {
@@ -491,8 +518,26 @@ func (c *Client) DumpSearch(query string, allSize int, batchSize int, fields []s
 
 	next := ""
 	perPage := batchSize
+	userSetBatchSize := true
+	if perPage == 0 {
+		perPage = 1000
+		userSetBatchSize = false
+	}
+
 	if perPage < 1 || perPage > 100000 {
 		return errors.New("batchSize must between 1 and 100000")
+	}
+
+	for _, f := range fields {
+		if f == "body" {
+			if perPage > 500 && !userSetBatchSize {
+				perPage = 500
+				if c.logger != nil {
+					c.logger.Warnf("fields contains body, change batchSize to %d", perPage)
+				}
+			}
+			break
+		}
 	}
 
 	// 确保urlfix开启后带上了protocol字段

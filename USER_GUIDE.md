@@ -635,12 +635,13 @@ $ fofa --version
 | fields       | f            | ip,port       | FOFA fields to retrieve. [Learn More](https://en.fofa.info/vip) |                             
 | format       |              | csv           | Output format: csv/json/xml                              |
 | outFile      | o            |               | Output file. If not set, prints to terminal              |
-| size         | s            | 100           | Query size. Maximum is 10,000, limited by `deductMode`   |
+| size         | s            | 100           | Query size. Maximum is 10,000, limited by `deductMode`  |
 | deductMode   |              |               | Determines consumption of f-points. Uses free quota by default |
 | fixUrl       |              | false         | Concatenates URLs (e.g., `1.1.1.1,80` → `http://1.1.1.1`) |
 | urlPrefix    |              | http://       | URL prefix                                               |
 | full         |              | false         | Retrieves full data                                      |
 | uniqByIP     |              | false         | Removes duplicates by IP                                |
+| batchSize    | bs           | 1000          | Pagination size per fetch *1                              |
 | workers      |              | 10            | Number of threads                                        |
 | rate         |              | 2             | Queries per second                                       |
 | template     |              | ip={}         | Replaces `{}` with content from pipeline input          |
@@ -652,6 +653,8 @@ $ fofa --version
 | headline     |              | false         | Outputs CSV headers (only applicable for CSV format)    |
 | customFields | cf           |               | use custom fields    |
 | help         | h            | false         | Displays usage instructions                              |
+ 
+*1: When the `body` field is included, the default `batchSize` is automatically capped at 500. If the `-bs` parameter is explicitly set, the set value will be used instead.
 
 ### Dump
 
@@ -665,10 +668,12 @@ $ fofa --version
 | fixUrl       |              | false         | Concatenates URLs (e.g., `1.1.1.1,80` → `http://1.1.1.1`) |
 | urlPrefix    |              | http://       | URL prefix                                               |
 | full         |              | false         | Retrieves full data                                      |
-| batchSize    | bs           | 1000          | Number of records fetched per batch                     |
+| batchSize    | bs           | 1000          | Number of records fetched per batch *1                   |
 | batchType    | bt           |               | Batch query type: ip/domain                             |
 | customFields | cf           |               | use custom fields    |
 | help         | h            | false         | Displays usage instructions                              |
+
+*1: When the `body` field is included, the `batchSize` is automatically capped at 500.
 
 ### jsRender
 

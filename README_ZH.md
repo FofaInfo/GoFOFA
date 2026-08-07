@@ -148,6 +148,7 @@ categories:
 | urlPrefix   |          | http:// | url前缀                                           |
 | full        |          | false   | 是否调取全量数据                                  |
 | uniqByIP    |          | false   | 是否根据ip去重                                    |
+| batchSize   | bs       | 1000    | 每次拉取的分页大小 *3                           |
 | workers     |          | 10      | 线程数量                                          |
 | rate        |          | 2       | 每秒查询次数                                      |
 | template    |          | ip={}   | 从管道获取输入，输入的内容会替换{}                |
@@ -161,12 +162,13 @@ categories:
 
 *1：当获取字段包含 `cert` 和 `banner` 时，单次查询 size 最大支持 2000。
 *2：当获取字段包含 `body` 时，单次查询 size 最大支持 500。
+*3：当获取字段包含 `body` 时，默认的 `batchSize` 会自动限制为 500。如果手动设置了 `-bs` 参数，则以设置的值为准。
 
 ### dump
 
 | 参数      | 参数简写 | 默认值  | 简介                                                  |
 | --------- | -------- | ------- | ----------------------------------------------------- |
-| fields    | f        | ip,port | FOFA返回的字段选择，有效字段参考https://fofa.info/api，dump的参考https://fofa.info/api/batches_pages |
+| fields    | f        | ip,port | FOFA返回的字段选择，有效字段参考https://fofa.info/api/batches_pages |
 | format    |          | csv     | 输出格式，可以为csv/json/xml                          |
 | outFile   | o        |         | 输出文件，如果不设置则终端打印                        |
 | inFile    | i        |         | 输入文件，如果不设置则读取管道输入                    |
@@ -174,7 +176,7 @@ categories:
 | fixUrl    |          | false   | 是否组合url，例如1.1.1.1,80组合为http://1.1.1.1       |
 | urlPrefix |          | http:// | url前缀                                               |
 | full      |          | false   | 是否调取全量数据                                      |
-| batchSize | bs       | 1000    | 每次拉取多少条数据                                    |
+| batchSize | bs       | 1000    | 每次拉取多少条数据 *3                                 |
 | batchType | bt       |         | 批量查询，可以为ip/domain                             |
 | workers   |          | 10      | 线程数量，当使用-i时默认10                            |
 | rate      |          | 2       | 每秒查询次数                                          |
@@ -182,6 +184,7 @@ categories:
 
 *1：当获取字段包含 `cert` 和 `banner` 时，单次查询 size 最大支持 2000。
 *2：当获取字段包含 `body` 时，单次查询 size 最大支持 500。
+*3：当获取字段包含 `body` 时，每次拉取的 `batchSize` 会自动限制为 500。
 
 ### jsRender
 

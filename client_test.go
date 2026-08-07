@@ -150,6 +150,26 @@ var (
 					}
 
 					return
+				case "ip,port,body":
+					// Test for body field with batchSize auto-cap
+					switch r.FormValue("size") {
+					case "10":
+						w.Write([]byte(`{"error":false,"size":470293950,"page":1,"mode":"extended","query":"port=\"80\"","results":[["94.130.128.248","80","<html>test body 1</html>"],["186.6.19.151","80","<html>test body 2</html>"],["72.247.70.195","80","<html>test body 3</html>"],["18.66.199.67","80","<html>test body 4</html>"],["91.122.52.148","80","<html>test body 5</html>"],["113.23.57.252","80","<html>test body 6</html>"],["54.144.154.222","80","<html>test body 7</html>"],["188.223.2.247","80","<html>test body 8</html>"],["50.213.108.254","80","<html>test body 9</html>"],["34.237.16.144","80","<html>test body 10</html>"]]}`))
+					case "100":
+						w.Write([]byte(`{"error":false,"size":470293950,"page":1,"mode":"extended","query":"port=\"80\"","results":[["94.130.128.248","80","<html>body</html>"],["186.6.19.151","80","<html>body</html>"],["72.247.70.195","80","<html>body</html>"],["18.66.199.67","80","<html>body</html>"],["91.122.52.148","80","<html>body</html>"],["113.23.57.252","80","<html>body</html>"],["54.144.154.222","80","<html>body</html>"],["188.223.2.247","80","<html>body</html>"],["50.213.108.254","80","<html>body</html>"],["34.237.16.144","80","<html>body</html>"]]}`))
+					default:
+						w.Write([]byte(`{"error":false,"size":470293950,"page":1,"mode":"extended","query":"port=\"80\"","results":[["94.130.128.248","80","<html>body</html>"]]}`))
+					}
+					return
+				case "ip,port,host":
+					// Test for non-body fields
+					switch r.FormValue("size") {
+					case "10":
+						w.Write([]byte(`{"error":false,"size":470293950,"page":1,"mode":"extended","query":"port=\"80\"","results":[["94.130.128.248","80","94.130.128.248:80"],["186.6.19.151","80","186.6.19.151:80"],["72.247.70.195","80","72.247.70.195:80"],["18.66.199.67","80","18.66.199.67:80"],["91.122.52.148","80","91.122.52.148:80"],["113.23.57.252","80","113.23.57.252:80"],["54.144.154.222","80","54.144.154.222:80"],["188.223.2.247","80","188.223.2.247:80"],["50.213.108.254","80","50.213.108.254:80"],["34.237.16.144","80","34.237.16.144:80"]]}`))
+					default:
+						w.Write([]byte(`{"error":false,"size":470293950,"page":1,"mode":"extended","query":"port=\"80\"","results":[["94.130.128.248","80","94.130.128.248:80"]]}`))
+					}
+					return
 				}
 			case "port=5354":
 				switch r.FormValue("full") {
@@ -255,6 +275,8 @@ var (
 				case "host,ip,port,protocol":
 					data = append([]string{fmt.Sprintf("http://%d.%d.%d.%d", i, i, i, i)}, data...)
 					data = append(data, "http")
+				case "ip,port,body":
+					data = append(data, fmt.Sprintf("<html>body content %d</html>", i+j))
 				}
 
 				results = append(results, data)

@@ -98,6 +98,13 @@ var searchCmd = &cli.Command{
 			Usage:       "search result for over a year",
 			Destination: &full,
 		},
+		&cli.IntFlag{
+			Name:        "batchSize",
+			Aliases:     []string{"bs"},
+			Value:       0,
+			Usage:       "amount of data contained in each page batch, default 1000",
+			Destination: &batchSize,
+		},
 		&cli.BoolFlag{
 			Name:        "uniqByIP",
 			Value:       false,
@@ -369,6 +376,7 @@ func SearchAction(ctx *cli.Context) error {
 			DeWildcard:  deWildcard,
 			Filter:      filter,
 			DedupHost:   dedupHost,
+			BatchSize:   batchSize,
 		})
 		if err != nil {
 			return err

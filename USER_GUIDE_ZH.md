@@ -637,6 +637,7 @@ $ fofa --version
 | urlPrefix   |      | http:// | url前缀                                           |
 | full        |      | false   | 是否调取全量数据                                  |
 | uniqByIP    |      | false   | 是否根据ip去重                                    |
+| batchSize   | bs   | 1000   | 每次拉取的分页大小 *1                            |
 | workers     |      | 10      | 线程数量                                          |
 | rate        |      | 2       | 每秒查询次数                                      |
 | template    |      | ip={}   | 从管道获取输入，输入的内容会替换{}                |
@@ -648,6 +649,8 @@ $ fofa --version
 | headline    |      | false   | 是否输出csv头，只有在format为csv时可用            |
 | customFields | cf   |         | 使用自定义fields字段    |
 | help        | h    | false   | 使用方法                                          |
+
+*1：当获取字段包含 `body` 时，默认的 `batchSize` 会自动限制为 500。如果手动设置了 `-bs` 参数，则以设置的值为准。
 
 ### dump
 
@@ -661,10 +664,12 @@ $ fofa --version
 | fixUrl    |          | false   | 是否组合url，例如1.1.1.1,80组合为http://1.1.1.1       |
 | urlPrefix |          | http:// | url前缀                                               |
 | full      |          | false   | 是否调取全量数据                                      |
-| batchSize | bs       | 1000    | 每次拉取多少条数据                                    |
+| batchSize | bs       | 1000    | 每次拉取多少条数据 *1                                 |
 | batchType | bt       |         | 批量查询，可以为ip/domain                             |
 | customFields | cf   |         | 使用自定义fields字段    |
 | help      | h        | false   | 使用方法                                              |
+
+*1：当获取字段包含 `body` 时，每次拉取的 `batchSize` 会自动限制为 500。
 
 ### jsRender
 

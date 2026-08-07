@@ -145,6 +145,7 @@ categories:
 | urlPrefix   |              | http://       | URL prefix                                                |
 | full        |              | false         | Retrieves full data                                       |
 | uniqByIP    |              | false         | Removes duplicates based on IP                           |
+| batchSize   | bs           | 1000          | Pagination size per fetch *3                                |
 | workers     |              | 10            | Number of threads                                         |
 | rate        |              | 2             | Query rate per second                                     |
 | template    |              | ip={}         | Replaces `{}` with content from pipeline input           |
@@ -158,12 +159,13 @@ categories:
 
 *1: When the query contains `cert` and `banner`, the maximum results size setting is 2000 per page.
 *2: When the query contains `body`, the maximum results size setting is 500 per page.
+*3: When the `body` field is included, the default `batchSize` is automatically capped at 500. If the `-bs` parameter is explicitly set, the set value will be used instead.
 
 ### `dump`
 
 | Parameter   | Abbreviation | Default Value | Description                                               |
 |-------------|--------------|---------------|-----------------------------------------------------------|
-| fields      | f            | ip,port       | Fields returned by FOFA, valid fields refer to https://en.fofa.info/api, for dump command refer to https://en.fofa.info/api/batches_pages |
+| fields      | f            | ip,port       | Fields returned by FOFA, valid fields refer to https://en.fofa.info/api/batches_pages |
 | format      |              | csv           | Output format: csv/json/xml                               |
 | outFile     | o            |               | Output file. If not set, prints to terminal               |
 | inFile      | i            |               | Input file. If not set, reads from pipeline input         |
@@ -171,7 +173,7 @@ categories:
 | fixUrl      |              | false         | Combines URLs (e.g., 1.1.1.1,80 becomes http://1.1.1.1)   |
 | urlPrefix   |              | http://       | URL prefix                                                |
 | full        |              | false         | Retrieves full data                                       |
-| batchSize   | bs           | 1000          | Number of records to fetch per batch                     |
+| batchSize   | bs           | 1000          | Number of records to fetch per batch *3                    |
 | batchType   | bt           |               | Batch query type: ip/domain                              |
 | workers     |              | 10            | Number of threads, defaults to 10 when using -i           |
 | rate        |              | 2             | Query rate per second                                     |
@@ -179,6 +181,7 @@ categories:
 
 *1: When the query contains `cert` and `banner`, the maximum results size setting is 2000 per page.
 *2: When the query contains `body`, the maximum results size setting is 500 per page.
+*3: When the `body` field is included, the `batchSize` is automatically capped at 500. 
 
 ### `jsRender`
 

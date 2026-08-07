@@ -5,6 +5,7 @@
 -   enhance the `dump` command with a worker pool for concurrency and thread-safe data writing mechanics.
 -   include comprehensive unit test coverage for the validation and concurrency logic in fields_test.go and dump_test.go.
 -   update README.md and README_ZH.md to natively reference the official FOFA API documentation URLs for valid fields.
+-   optimize `search` command by adding `-bs` parameter to customize batch size for returned data.
 
 ## v0.2.28 fix dedup mode
 
