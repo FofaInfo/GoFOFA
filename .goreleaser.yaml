@@ -1,19 +1,14 @@
-# This is an example .goreleaser.yml file with some sensible defaults.
-# Make sure to check the documentation at https://goreleaser.com
+version: 2
+
 project_name: fofa
 
-env_files:
-  github_token: ~/.github_token
 before:
   hooks:
-    # You may remove this if you don't use go modules.
     - go mod tidy
     - go mod download
-    # you may remove this if you don't need go generate
     - go generate ./...
 builds:
-  - 
-    main: cmd/fofa/main.go
+  - main: ./cmd/fofa
     env:
       - CGO_ENABLED=0
     goos:
@@ -29,22 +24,17 @@ builds:
         goarch: 386
       - goos: windows
         goarch: arm64
-    asmflags:
-      - -D mysymbol
-      - all=-trimpath={{.Env.GOPATH}}
-    gcflags:
-      - all=-trimpath={{.Env.GOPATH}}
-      - ./dontoptimizeme=-N
+    flags:
+      - -trimpath
     ldflags:
-      - "-s -w"
-      - "-X 'main.version={{.Version}}'"
-      - "-X 'main.commit={{.Commit}}'"
-      - "-X 'main.date={{.Date}}'"
-      - "-X 'main.builtBy={{.Env.USER}}'"
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
 checksum:
-  name_template: 'checksums.txt'
+  name_template: checksums.txt
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
   filters:
