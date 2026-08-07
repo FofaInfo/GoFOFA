@@ -54,3 +54,20 @@ func TestClient_Stats(t *testing.T) {
 	res, err = cli.Stats("port=80", 5, nil)
 	assert.Error(t, err)
 }
+
+func TestClient_StatsReturnsErrorFlagWithoutMessage(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]interface{}{"error": true})
+	}))
+	defer server.Close()
+
+	client := &Client{
+		Server:     server.URL,
+		APIVersion: "v1",
+		httpClient: server.Client(),
+	}
+	_, err := client.Stats("port=80", 1, []string{"title"})
+	if err == nil || err.Error() != "fofa stats failed" {
+		t.Fatalf("Stats error = %v, want explicit error", err)
+	}
+}

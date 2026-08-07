@@ -66,6 +66,10 @@ func (ai AccountInfo) String() string {
 // AccountInfo fetch account info from fofa
 func (c *Client) AccountInfo() (ac AccountInfo, err error) {
 	err = c.Fetch("info/my", nil, &ac)
+	if err != nil {
+		return
+	}
+	err = apiResponseError(ac.Error, ac.ErrMsg, "fofa account info failed")
 	return
 }
 

@@ -195,6 +195,24 @@ func TestClient_HostSearch(t *testing.T) {
 	assert.Equal(t, 57, len(res))
 }
 
+func TestClient_HostStatsReturnsErrorFlagWithoutMessage(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]interface{}{"error": true})
+	}))
+	defer server.Close()
+
+	client := &Client{
+		Server:     server.URL,
+		APIVersion: "v1",
+		httpClient: server.Client(),
+		ctx:        context.Background(),
+	}
+	_, err := client.HostStats("example.com")
+	if err == nil || err.Error() != "fofa host stats failed" {
+		t.Fatalf("HostStats error = %v, want explicit error", err)
+	}
+}
+
 func TestClient_HostSearch_UniqIP(t *testing.T) {
 	fofaQueryTest := `title=test`
 	ts := httptest.NewServer(http.HandlerFunc(bindSearchAllQueryHandle(fofaQueryTest, "ip,port",
@@ -311,6 +329,23 @@ func TestClient_HostSize(t *testing.T) {
 	}
 	count, err = cli.HostSize("port=80")
 	assert.Error(t, err)
+}
+
+func TestClient_HostSizeReturnsErrorFlagWithoutMessage(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]interface{}{"error": true})
+	}))
+	defer server.Close()
+
+	client := &Client{
+		Server:     server.URL,
+		APIVersion: "v1",
+		httpClient: server.Client(),
+	}
+	_, err := client.HostSize("port=80")
+	if err == nil || err.Error() != "fofa search failed" {
+		t.Fatalf("HostSize error = %v, want explicit error", err)
+	}
 }
 
 func TestClient_HostStats(t *testing.T) {

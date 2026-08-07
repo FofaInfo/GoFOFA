@@ -2,14 +2,24 @@ package gofofa
 
 import (
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 )
+
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
 
 var (
 	fetchHander = func(w http.ResponseWriter, r *http.Request) {
@@ -154,4 +164,64 @@ func TestClient_Fetch(t *testing.T) {
 	}
 	err = cli.Fetch("/", nil, &a)
 	assert.Contains(t, err.Error(), "unexpected EOF")
+}
+
+func TestFetchNetworkErrorDoesNotMutateCredentials(t *testing.T) {
+	calls := 0
+	var secondRequest *http.Request
+	cli := &Client{
+		Server:     "http://fofa.test",
+		APIVersion: "v1",
+		Email:      "account@example.com",
+		Key:        "secret-key",
+		httpClient: &http.Client{},
+		logger:     logrus.New(),
+	}
+	cli.httpClient.Transport = roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+		calls++
+		if calls == 1 {
+			return nil, errors.New("network failure")
+		}
+		secondRequest = req
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader(`{"error":false}`)),
+			Request:    req,
+		}, nil
+	})
+
+	var result HostResults
+	if err := cli.Fetch("search/all", nil, &result); err == nil {
+		t.Fatal("first request error = nil, want network error")
+	}
+	if err := cli.Fetch("search/all", nil, &result); err != nil {
+		t.Fatalf("second request error = %v", err)
+	}
+	if cli.Email != "account@example.com" || cli.Key != "secret-key" {
+		t.Fatalf("client credentials changed: email=%q key=%q", cli.Email, cli.Key)
+	}
+	if secondRequest.URL.Query().Get("email") != "account@example.com" || secondRequest.URL.Query().Get("key") != "secret-key" {
+		t.Fatalf("second request credentials changed: %s", secondRequest.URL)
+	}
+}
+
+func TestBuildURLOmitsEmptyEmail(t *testing.T) {
+	client := &Client{
+		Server:     "https://fofa.info",
+		APIVersion: "v1",
+		Key:        "secret-key",
+	}
+
+	requestURL, err := url.Parse(client.buildURL("search/all", nil))
+	if err != nil {
+		t.Fatalf("parse request URL: %v", err)
+	}
+	query := requestURL.Query()
+	if query.Has("email") {
+		t.Fatalf("request URL contains empty email: %s", requestURL)
+	}
+	if query.Get("key") != "secret-key" {
+		t.Fatalf("request URL key = %q, want secret-key", query.Get("key"))
+	}
 }

@@ -2,7 +2,6 @@ package gofofa
 
 import (
 	"encoding/base64"
-	"errors"
 	"strconv"
 	"strings"
 )
@@ -49,8 +48,7 @@ func (c *Client) Stats(query string, size int, fields []string) (res []StatsObje
 	if err != nil {
 		return
 	}
-	if len(sr.Errmsg) > 0 {
-		err = errors.New(sr.Errmsg)
+	if err = apiResponseError(sr.Error, sr.Errmsg, "fofa stats failed"); err != nil {
 		return
 	}
 

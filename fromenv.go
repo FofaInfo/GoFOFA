@@ -3,15 +3,18 @@ package gofofa
 import (
 	"context"
 	"os"
+	"time"
 )
 
-// env can set:FOFA_SERVER,FOFA_EMAIL,FOFA_KEY,FOFA_CLIENT_URL
+// env can set:FOFA_SERVER,FOFA_KEY,FOFA_CLIENT_URL; FOFA_EMAIL is optional for legacy configurations.
 // FOFA_CLIENT_URL > FOFA_SERVER
 func newClientFromEnv() (*Client, error) {
 	c := &Client{
-		Server:     defaultServer,
-		APIVersion: defaultAPIVersion,
-		ctx:        context.Background(),
+		Server:              defaultServer,
+		APIVersion:          defaultAPIVersion,
+		ctx:                 context.Background(),
+		rateLimitRetries:    3,
+		rateLimitRetryDelay: time.Second,
 	}
 
 	if v := os.Getenv("FOFA_SERVER"); len(v) > 0 {

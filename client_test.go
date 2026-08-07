@@ -360,7 +360,7 @@ func TestNewClient(t *testing.T) {
 
 	// 都正常有环境变量没有参数，取环境变量
 	account := validAccounts[1]
-	fofaURL := ts.URL + "/?email=" + account.Email + "&key=" + account.Key + "&version=v1"
+	fofaURL := ts.URL + "/?email=" + url.QueryEscape(account.Email) + "&key=" + account.Key + "&version=v1"
 	os.Setenv("FOFA_CLIENT_URL", fofaURL)
 	cli, err = NewClient(WithURL(""))
 	assert.Nil(t, err)
@@ -368,7 +368,7 @@ func TestNewClient(t *testing.T) {
 
 	// 都正常有参数，以参数为主
 	account = validAccounts[2]
-	fofaURLNew := ts.URL + "/?email=" + account.Email + "&key=" + account.Key + "&version=v1"
+	fofaURLNew := ts.URL + "/?email=" + url.QueryEscape(account.Email) + "&key=" + account.Key + "&version=v1"
 	os.Setenv("FOFA_CLIENT_URL", fofaURL)
 	cli, err = NewClient(WithURL(fofaURLNew))
 	assert.Nil(t, err)
@@ -395,4 +395,41 @@ func TestNewClient(t *testing.T) {
 	u, err = url.QueryUnescape(err.Error())
 	assert.Nil(t, err)
 	assert.NotContains(t, u, account.Email)
+}
+
+func TestNewClientWithKeyOnly(t *testing.T) {
+	t.Setenv("FOFA_EMAIL", "legacy@example.com")
+	account := validAccounts[1]
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/info/my" || r.URL.Query().Get("key") != account.Key || r.URL.Query().Has("email") {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		if err := json.NewEncoder(w).Encode(account); err != nil {
+			t.Errorf("encode account response: %v", err)
+		}
+	}))
+	defer server.Close()
+
+	client, err := NewClient(WithURL(server.URL + "/?key=" + account.Key))
+	if err != nil {
+		t.Fatalf("NewClient returned error: %v", err)
+	}
+	if client.Email != "" || client.Key != account.Key {
+		t.Fatalf("credentials = email %q, key %q; want empty email and key %q", client.Email, client.Key, account.Key)
+	}
+}
+
+func TestNewClientWithAccountErrorWithoutMessage(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/info/my" {
+			writeJSON(w, http.StatusNotFound, map[string]interface{}{"error": true})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]interface{}{"error": true})
+	}))
+	defer server.Close()
+
+	_, err := NewClient(WithURL(server.URL + "/?key=invalid"))
+	assert.EqualError(t, err, "auth failed: 'fofa account info failed', make sure key is valid")
 }

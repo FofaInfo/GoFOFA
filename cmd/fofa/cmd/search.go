@@ -207,9 +207,21 @@ func hasBodyField(fields []string) bool {
 	return hashField(fields, "body")
 }
 
-func pipelineProcess(writeQuery func(query string) error, in io.Reader) {
+func pipelineProcess(writeQuery func(query string) error, in io.Reader) error {
 	// 并发模式
 	wg := sync.WaitGroup{}
+	var errMu sync.Mutex
+	var firstErr error
+	recordError := func(err error) {
+		if err == nil {
+			return
+		}
+		errMu.Lock()
+		defer errMu.Unlock()
+		if firstErr == nil {
+			firstErr = err
+		}
+	}
 	queries := make(chan string, workers)
 	limiter := rate.NewLimiter(rate.Limit(ratePerSecond), 5)
 
@@ -217,10 +229,13 @@ func pipelineProcess(writeQuery func(query string) error, in io.Reader) {
 		for q := range queries {
 			tmpQuery := strings.ReplaceAll(template, "{}", q)
 			if err := limiter.Wait(context.Background()); err != nil {
-				fmt.Println("Error: ", err)
+				recordError(err)
+				wg.Done()
+				continue
 			}
 			if err := writeQuery(tmpQuery); err != nil {
 				log.Println("[WARNING]", err)
+				recordError(err)
 			}
 			wg.Done()
 		}
@@ -238,9 +253,12 @@ func pipelineProcess(writeQuery func(query string) error, in io.Reader) {
 
 	if err := scanner.Err(); err != nil {
 		log.Println(err)
+		recordError(err)
 	}
 
+	close(queries)
 	wg.Wait()
+	return firstErr
 }
 
 // SearchAction search action
@@ -381,7 +399,9 @@ func SearchAction(ctx *cli.Context) error {
 		} else {
 			inf = os.Stdin
 		}
-		pipelineProcess(writeQuery, inf)
+		if err := pipelineProcess(writeQuery, inf); err != nil {
+			return err
+		}
 	}
 
 	return nil
